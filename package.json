@@ -1,7 +1,7 @@
 {
-   "name": "oxide.ts",
+   "name": "titanium",
    "version": "1.1.0",
-   "description": "Rust's Option<T> and Result<T, E>, implemented for TypeScript.",
+   "description": "Rust's Option<T> and Result<T, E> with async support for TypeScript.",
    "main": "dist",
    "types": "dist",
    "exports": {
@@ -25,11 +25,11 @@
       "functional",
       "fp"
    ],
-   "author": "Matthew Wilson",
+   "author": "Ivan Kapitanov",
    "license": "MIT",
    "repository": {
       "type": "git",
-      "url": "https://github.com/traverse1984/oxide.ts.git"
+      "url": "https://github.com/SteakOvercooked/titanium.git"
    },
    "dependencies": {},
    "devDependencies": {
