@@ -7,7 +7,6 @@
       "outDir": "dist",
       "strict": true,
       "types": ["mocha"],
-      "strictNullChecks": true,
       "declaration": true,
       "forceConsistentCasingInFileNames": true
    }
