@@ -68,23 +68,6 @@ export class ResultType<T, E> {
    }
 
    /**
-    * Compares the Result to `cmp`, returns true if both are `Ok` or both
-    * are `Err` and acts as a type guard.
-    *
-    * ```
-    * const o = Ok(1);
-    * const e = Err(1);
-    *
-    * assert.equal(o.isLike(Ok(1))), true);
-    * assert.equal(e.isLike(Err(1)), true);
-    * assert.equal(o.isLike(e), false);
-    * ```
-    */
-   isLike(this: Result<T, E>, cmp: unknown): cmp is Result<unknown, unknown> {
-      return cmp instanceof ResultType && this[T] === cmp[T];
-   }
-
-   /**
     * Returns true if the Result is `Ok` and acts as a type guard.
     *
     * ```
@@ -122,7 +105,6 @@ export class ResultType<T, E> {
     *
     * ```
     * const x = Ok(1);
-    * assert.equal(x.filter((v) => v < 5).isLike(Some(1)), true);
     * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
     *
     * const x = Ok(10);

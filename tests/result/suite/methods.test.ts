@@ -18,13 +18,6 @@ export default function methods() {
       expect(Err(1).intoTuple()).to.deep.equal([1, null]);
    });
 
-   it("isLike", () => {
-      expect(Ok(1).isLike(Ok(2))).to.be.true;
-      expect(Err(1).isLike(Ok(1))).to.be.false;
-      expect(Ok(1).isLike(Err(1))).to.be.false;
-      expect(Err(1).isLike(Err(2))).to.be.true;
-   });
-
    it("isOk", () => {
       expect(Ok(1).isOk()).to.be.true;
       expect(Err(1).isOk()).to.be.false;
@@ -37,7 +30,6 @@ export default function methods() {
 
    it("filter", () => {
       const lessThan5 = (x: number) => x < 5;
-      expect(Ok(1).filter(lessThan5).isLike(Some(1))).to.be.true;
       expect(Ok(1).filter(lessThan5).unwrap()).to.equal(1);
       expect(Ok(10).filter(lessThan5).isNone()).to.be.true;
       expect(Err(1).filter(lessThan5).isNone()).to.be.true;

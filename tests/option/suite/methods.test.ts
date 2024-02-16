@@ -13,13 +13,6 @@ export default function methods() {
       expect(None.into(null)).to.equal(null);
    });
 
-   it("isLike", () => {
-      expect(Some(1).isLike(Some(2))).to.be.true;
-      expect(AsOpt(None).isLike(Some(1))).to.be.false;
-      expect(Some(1).isLike(None)).to.be.false;
-      expect(None.isLike(None)).to.be.true;
-   });
-
    it("isSome", () => {
       expect(Some(1).isSome()).to.be.true;
       expect(None.isSome()).to.be.false;

@@ -48,23 +48,6 @@ class OptionType<T> {
    }
 
    /**
-    * Compares the Option to `cmp`, returns true if both are `Some` or both
-    * are `None` and acts as a type guard.
-    *
-    * ```
-    * const s: Option<number> = Some(1);
-    * const n: Option<number> = None;
-    *
-    * assert.equal(s.isLike(Some(10)), true);
-    * assert.equal(n.isLike(None), true);
-    * assert.equal(s.isLike(n), false);
-    * ```
-    */
-   isLike(this: Option<T>, cmp: unknown): cmp is Option<unknown> {
-      return cmp instanceof OptionType && this[T] === cmp[T];
-   }
-
-   /**
     * Returns true if the Option is `Some` and acts as a type guard.
     *
     * ```
