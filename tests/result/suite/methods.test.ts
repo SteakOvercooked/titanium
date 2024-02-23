@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Result, Ok, Err, Some } from "../../../src";
+import { Result, Ok, Err } from "../../../src";
 
 function AsRes<T>(val: unknown): Result<T, T> {
    return val as Result<T, T>;
@@ -32,6 +32,12 @@ export default function methods() {
    it("isErr", () => {
       expect(Ok(1).isErr()).to.be.false;
       expect(Err(1).isErr()).to.be.true;
+   });
+
+   it("isErrAnd", () => {
+      expect(Ok(1).isErrAnd((val) => val === 1)).to.be.false;
+      expect(Err(1).isErrAnd((val) => val > 1)).to.be.false;
+      expect(Err(1).isErrAnd((val) => val === 1)).to.be.true;
    });
 
    it("filter", () => {

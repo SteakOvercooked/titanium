@@ -88,10 +88,10 @@ export class ResultType<T, E> {
     *
     * ```
     * const x = Ok(10);
-    * assert.equal(x.isOkAnd((val) => val === 10), true);
+    * assert.equal(x.isOkAnd((n) => n === 10), true);
     *
     * const x = Err(10);
-    * assert.equal(x.isOkAnd((val) => val === 10), false);
+    * assert.equal(x.isOkAnd((n) => n === 10), false);
     * ```
     */
    isOkAnd(this: Result<T, E>, f: (val: T) => boolean): this is Ok<T> {
@@ -111,6 +111,22 @@ export class ResultType<T, E> {
     */
    isErr(this: Result<T, E>): this is Err<E> {
       return !this[T];
+   }
+
+   /**
+    * Returns true if the Result is `Err` and the value inside of it matches a predicate.
+    * Acts as a type guard.
+    *
+    * ```
+    * const x = Ok(10);
+    * assert.equal(x.isErrAnd((n) => n === 10), false);
+    *
+    * const x = Err(10);
+    * assert.equal(x.isErrAnd((n) => n === 10), true);
+    * ```
+    */
+   isErrAnd(this: Result<T, E>, f: (err: E) => boolean): this is Err<E> {
+      return !this[T] && f(this[Val] as E);
    }
 
    /**
