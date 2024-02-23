@@ -381,6 +381,25 @@ class OptionType<T> {
    okOrElse<E>(this: Option<T>, f: () => E): Result<T, E> {
       return this[T] ? Ok(this[Val]) : Err(f());
    }
+
+   /**
+    * Calls the provided closure with the contained value (if Some), otherwise does nothing.
+    * 
+    * ```
+    * // Prints the contained value.
+    * Some(10).inspect((n) => console.log(n));
+    * 
+    * // Doesn't produce any output.
+    * None.inspect((n) => console.log(n));
+    * ```
+    */
+   inspect(this: Option<T>, f: (val: T) => void): Option<T> {
+      if (this[T]) {
+         f(this[Val] as T);
+      }
+
+      return this;
+   }
 }
 
 /**

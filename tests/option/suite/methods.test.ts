@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import * as sinon from "sinon";
 import { Option, Some, None } from "../../../src";
 
 function AsOpt(val: Option<any>): Option<number> {
@@ -152,5 +153,14 @@ export default function methods() {
       ).to.equal(1);
       expect(None.okOrElse(() => "err").isErr()).to.be.true;
       expect(None.okOrElse(() => "err").unwrapErr()).to.equal("err");
+   });
+
+   it("inspect", () => {
+      const fSome = sinon.fake();
+      const fNone = sinon.fake();
+      Some(1).inspect(fSome);
+      None.inspect(fNone);
+      expect(fSome.called);
+      expect(fNone.notCalled);
    });
 }

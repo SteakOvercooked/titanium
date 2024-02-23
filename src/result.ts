@@ -478,6 +478,44 @@ export class ResultType<T, E> {
    ok(this: Result<T, E>): Option<T> {
       return this[T] ? Some(this[Val] as T) : None;
    }
+
+   /**
+    * Calls the provided closure with the contained Ok value otherwise does nothing.
+    * 
+    * ```
+    * // Prints the contained value.
+    * Ok(10).inspect((n) => console.log(n));
+    * 
+    * // Doesn't produce any output.
+    * Err(10).inspect((n) => console.log(n));
+    * ```
+    */
+   inspect(this: Result<T, E>, f: (val: T) => void): Result<T, E> {
+      if (this[T]) {
+         f(this[Val] as T);
+      }
+
+      return this;
+   }
+
+   /**
+    * Calls the provided closure with the contained Err value otherwise does nothing.
+    * 
+    * ```
+    * // Doesn't produce any output.
+    * Ok(10).inspectErr((n) => console.log(n));
+    * 
+    * // Prints the contained error.
+    * Err(10).inspectErr((n) => console.log(n));
+    * ```
+    */
+   inspectErr(this: Result<T, E>, f: (err: E) => void): Result<T, E> {
+      if (!this[T]) {
+         f(this[Val] as E);
+      }
+
+      return this;
+   }
 }
 
 /**

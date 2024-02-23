@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import * as sinon from "sinon";
 import { Result, Ok, Err } from "../../../src";
 
 function AsRes<T>(val: unknown): Result<T, T> {
@@ -181,5 +182,24 @@ export default function methods() {
       expect(Ok(1).ok().unwrap()).to.equal(1);
       expect(Err(1).ok().isNone()).to.be.true;
       expect(() => Err(1).ok().unwrap()).to.throw(/unwrap/);
+   });
+
+   it("inspect", () => {
+      const fOk = sinon.fake();
+      const fErr = sinon.fake();
+      Ok(1).inspect(fOk);
+      Err(1).inspect(fErr);
+      expect(fOk.called);
+      expect(fErr.notCalled);
+   });
+
+   it("inspectErr", () => {
+      const fOk = sinon.fake();
+      const fErr = sinon.fake();
+      Ok(1).inspectErr(fOk);
+      Err(1).inspectErr(fErr);
+      expect(fOk.notCalled);
+      expect(fErr.called);
+      expect(fErr.calledThrice);
    });
 }
