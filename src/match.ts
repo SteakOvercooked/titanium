@@ -466,7 +466,10 @@ function matches<T>(
 
    if (isObjectLike(cond)) {
       if (T in cond) {
-         return (matches((cond as any)[Val], (val as any)[Val], false));
+         const isLike =
+            Result.is(val) && Result.is(cond) && (cond as any)[T] === (val as any)[T] ||
+            Option.is(val) && Option.is(cond) && (cond as any)[T] === (val as any)[T];
+         return isLike && (matches((cond as any)[Val], (val as any)[Val], false));
       }
 
       if (isObjectLike(val) && Array.isArray(cond) === Array.isArray(val)) {
