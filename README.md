@@ -1,12 +1,16 @@
-# oxide.ts
+# titanium
 
 [Rust](https://rust-lang.org)'s `Option<T>` and `Result<T, E>`, implemented
-for TypeScript. Zero dependencies, full test coverage and complete in-editor documentation.
+for TypeScript with async support. Zero dependencies, full test coverage and complete in-editor documentation.
+
+I absolutely love [oxide.ts](https://github.com/traverse1984/oxide.ts) but the library is updated no more,
+lacks async support, does not implement a couple of useful methods (like `inspect`)
+and got some behavior (like Result's `expect`) wrong.
 
 ## Installation
 
 ```
-$ npm install oxide.ts --save
+$ npm install titanium --save
 ```
 
 ## New features in 1.1.0
@@ -37,16 +41,16 @@ $ npm install oxide.ts --save
 
 ## Importing
 
-You can import the complete **oxide.ts** library:
+You can import the complete **titanium** library:
 
 ```ts
-import { Option, Some, None, Result, Ok, Err, match, Fn, _ } from "oxide.ts";
+import { Option, Some, None, Result, Ok, Err, match, Fn, _ } from "titanium";
 ```
 
 Or just the **core** library, which exclues the `match` feature:
 
 ```ts
-import { Option, Some, None, Result, Ok, Err } from "oxide.ts/core";
+import { Option, Some, None, Result, Ok, Err } from "titanium/core";
 ```
 
 ## Option
@@ -56,7 +60,7 @@ common API, so we can chain operations without having to worry whether we have
 Some or None until pulling the value out:
 
 ```ts
-import { Option, Some, None } from "oxide.ts";
+import { Option, Some, None } from "titanium";
 
 function divide(x: number, by: number): Option<number> {
    return by === 0 ? None : Some(x / by);
@@ -91,7 +95,7 @@ If we hold a value of type `Result<T, E>` we know it's either `Ok<T>` or
 `Err<E>`. You could think of a Result as an Option where None has a value.
 
 ```ts
-import { Result, Ok, Err } from "oxide.ts";
+import { Result, Ok, Err } from "titanium";
 
 function divide(x: number, by: number): Result<number, string> {
    return by === 0 ? Err("Division by zero") : Ok(x / by);
@@ -527,4 +531,4 @@ assert.equal(matchSome(None), "none");
 
 [&laquo; To contents](#usage)
 
-[&laquo; To top of page](#oxidets)
+[&laquo; To top of page](#titanium)
