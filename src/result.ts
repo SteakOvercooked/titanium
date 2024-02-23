@@ -83,6 +83,22 @@ export class ResultType<T, E> {
    }
 
    /**
+    * Returns true if the Result is `Ok` and the value inside of it matches a predicate.
+    * Acts as a type guard.
+    *
+    * ```
+    * const x = Ok(10);
+    * assert.equal(x.isOkAnd((val) => val === 10), true);
+    *
+    * const x = Err(10);
+    * assert.equal(x.isOkAnd((val) => val === 10), false);
+    * ```
+    */
+   isOkAnd(this: Result<T, E>, f: (val: T) => boolean): this is Ok<T> {
+      return this[T] && f(this[Val] as T);
+   }
+
+   /**
     * Returns true if the Result is `Err` and acts as a type guard.
     *
     * ```

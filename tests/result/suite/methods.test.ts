@@ -23,6 +23,12 @@ export default function methods() {
       expect(Err(1).isOk()).to.be.false;
    });
 
+   it("isOkAnd", () => {
+      expect(Ok(1).isOkAnd((val) => val === 1)).to.be.true;
+      expect(Ok(1).isOkAnd((val) => val > 1)).to.be.false;
+      expect(Err(1).isOkAnd((val) => val === 1)).to.be.false;
+   });
+
    it("isErr", () => {
       expect(Ok(1).isErr()).to.be.false;
       expect(Err(1).isErr()).to.be.true;
