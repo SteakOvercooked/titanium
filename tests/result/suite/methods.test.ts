@@ -56,12 +56,12 @@ export default function methods() {
 
    it("expect", () => {
       expect(Ok(1).expect("test")).to.equal(1);
-      expect(() => Err(1).expect("test")).to.throw("test");
+      expect(() => Err(1).expect("test")).to.throw("test: 1");
    });
 
    it("expectErr", () => {
       expect(Err(1).expectErr("test")).to.equal(1);
-      expect(() => Ok(1).expectErr("test")).to.throw("test");
+      expect(() => Ok(1).expectErr("test")).to.throw("test: 1");
    });
 
    it("unwrap", () => {

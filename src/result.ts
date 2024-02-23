@@ -171,43 +171,47 @@ export class ResultType<T, E> {
    }
 
    /**
-    * Returns the contained `Ok` value and throws `Error(msg)` if `Err`.
+    * Returns the contained `Ok` value and throws `Error` with the message
+    * including passed `msg` and the content of the `Err`.
     *
-    * To avoid throwing, consider `isOk`, `unwrapOr`, `unwrapOrElse` or
+    * To avoid throwing, consider `isErr`, `unwrapOr`, `unwrapOrElse` or
     * `match` to handle the `Err` case.
+    * 
+    * To control the error representation use `mapErr`.
     *
     * ```
     * const x = Ok(1);
     * assert.equal(x.expect("Was Err"), 1);
     *
-    * const x = Err(1);
-    * const y = x.expect("Was Err"); // throws
+    * const x = Err("something went wrong");
+    * const y = x.expect("Was Err"); // throws "Was Err: something went wrong"
     * ```
     */
    expect(this: Result<T, E>, msg: string): T {
       if (this[T]) {
          return this[Val] as T;
       } else {
-         throw new Error(msg);
+         throw new Error(`${msg}: ${this[Val]}`);
       }
    }
 
    /**
-    * Returns the contained `Err` value and throws `Error(msg)` if `Ok`.
+    * Returns the contained `Err` value and throws `Error` with the message
+    * including passed `msg` and the content of the `Ok`.
     *
-    * To avoid throwing, consider `isErr` or `match` to handle the `Ok` case.
-    *
+    * To avoid throwing, consider `isOk` or `match` to handle the `Ok` case.
+    * 
     * ```
     * const x = Ok(1);
-    * const y = x.expectErr("Was Ok"); // throws
+    * const y = x.expectErr("value should be cleaned up"); // throws "value should be cleaned up: 1"
     *
-    * const x = Err(1);
-    * assert.equal(x.expectErr("Was Ok"), 1);
+    * const x = Err("value is undefined");
+    * assert.equal(x.expectErr("value should be cleaned up"), "value is undefined");
     * ```
     */
    expectErr(this: Result<T, E>, msg: string): E {
       if (this[T]) {
-         throw new Error(msg);
+         throw new Error(`${msg}: ${this[Val]}`);
       } else {
          return this[Val] as E;
       }
