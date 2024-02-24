@@ -8,6 +8,7 @@
 export const T = Symbol("T");
 export const Val = Symbol("Val");
 export const FnVal = Symbol("FnVal");
+export const Prom = Symbol("Prom");
 export const EmptyArray = Object.freeze([] as any[]);
 
 export type FalseyValues = false | null | undefined | 0 | 0n | "";

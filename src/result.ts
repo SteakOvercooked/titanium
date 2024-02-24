@@ -15,7 +15,7 @@ type ResultErrors<R> = {
    [K in keyof R]: R[K] extends Result<any, infer U> ? U : never;
 };
 
-export class ResultType<T, E> {
+class ResultType<T, E> {
    readonly [T]: boolean;
    readonly [Val]: T | E;
 
