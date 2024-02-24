@@ -135,9 +135,9 @@ class OptionType<T> {
    expect(this: Option<T>, msg: string): T {
       if (this[T]) {
          return this[Val];
-      } else {
-         throw new Error(msg);
       }
+
+      throw new Error(msg);
    }
 
    /**
@@ -156,7 +156,11 @@ class OptionType<T> {
     * ```
     */
    unwrap(this: Option<T>): T {
-      return this.expect("Failed to unwrap Option (found None)");
+      if (this[T]) {
+         return this[Val];
+      }
+
+      throw new Error("Expected Some, got None");
    }
 
    /**
