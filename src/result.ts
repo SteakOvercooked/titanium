@@ -190,9 +190,9 @@ export class ResultType<T, E> {
    expect(this: Result<T, E>, msg: string): T {
       if (this[T]) {
          return this[Val] as T;
-      } else {
-         throw new Error(`${msg}: ${this[Val]}`);
       }
+
+      throw new Error(`${msg}: ${this[Val]}`);
    }
 
    /**
@@ -210,17 +210,17 @@ export class ResultType<T, E> {
     * ```
     */
    expectErr(this: Result<T, E>, msg: string): E {
-      if (this[T]) {
-         throw new Error(`${msg}: ${this[Val]}`);
-      } else {
+      if (!this[T]) {
          return this[Val] as E;
       }
+      
+      throw new Error(`${msg}: ${this[Val]}`);
    }
 
    /**
-    * Returns the contained `Ok` value and throws if `Err`.
+    * Returns the contained `Ok` value if `Ok` and throws the content of `Err` otherwise.
     *
-    * To avoid throwing, consider `isOk`, `unwrapOr`, `unwrapOrElse` or
+    * To avoid throwing, consider `isErr`, `unwrapOr`, `unwrapOrElse` or
     * `match` to handle the `Err` case. To throw a more informative error use
     * `expect`.
     *
@@ -233,13 +233,17 @@ export class ResultType<T, E> {
     * ```
     */
    unwrap(this: Result<T, E>): T {
-      return this.expect("Failed to unwrap Result (found Err)");
+      if (this[T]) {
+         return this[Val] as T;
+      }
+
+      throw this[Val];
    }
 
    /**
-    * Returns the contained `Err` value and throws if `Ok`.
+    * Returns the contained `Err` value if `Err` and throws the content of `Ok` otherwise.
     *
-    * To avoid throwing, consider `isErr` or `match` to handle the `Ok` case.
+    * To avoid throwing, consider `isOk` or `match` to handle the `Ok` case.
     * To throw a more informative error use `expectErr`.
     *
     * ```
@@ -251,7 +255,11 @@ export class ResultType<T, E> {
     * ```
     */
    unwrapErr(this: Result<T, E>): E {
-      return this.expectErr("Failed to unwrapErr Result (found Ok)");
+      if (!this[T]) {
+         return this[Val] as E;
+      }
+
+      throw this[Val];
    }
 
    /**
