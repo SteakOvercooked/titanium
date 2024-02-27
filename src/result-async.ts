@@ -189,4 +189,91 @@ class ResultTypeAsync<T, E> {
   async expectErr(this: ResultAsync<T, E>, msg: string): Promise<E> {
     return this[Prom].then((res) => res.expectErr(msg));
   }
+
+  /**
+   * Returns a `Promise` that resolves to `T` (if `Ok`), or throws `E` otherwise.
+   *
+   * To avoid throwing, consider `isErr`, `unwrapOr` or `unwrapOrElse` to
+   * handle the `Err` case. To throw a more informative error use `expect`.
+   *
+   * ```
+   * const x = OkAsync(1);
+   * assert.equal(await x.unwrap(), 1);
+   *
+   * const x = ErrAsync("Not found");
+   * await x.unwrap(); // throws "Not found"
+   * ```
+   */
+  async unwrap(this: ResultAsync<T, E>): Promise<T> {
+    return this[Prom].then((res) => res.unwrap());
+  }
+
+  /**
+   * Returns a `Promise` that resolves to `E` (if `Err`), or throws the content `T` otherwise.
+   *
+   * To avoid throwing, consider `isOk` to handle the `Ok` case.
+   * To throw a more informative error use `expectErr`.
+   *
+   * ```
+   * const x = OkAsync(1);
+   * await x.unwrapErr(); // throws "1"
+   *
+   * const x = ErrAsync(1);
+   * assert.equal(await x.unwrapErr(), 1);
+   * ```
+   */
+  async unwrapErr(this: ResultAsync<T, E>): Promise<E> {
+    return this[Prom].then((res) => res.unwrapErr());
+  }
+
+  /**
+   * Returns a `Promise` that resolves to `T` (if `Ok), or a provided default.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `unwrapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Ok(10);
+   * assert.equal(x.unwrapOr(1), 10);
+   *
+   * const x = Err(10);
+   * assert.equal(x.unwrapOr(1), 1);
+   * ```
+   */
+  async unwrapOr(this: ResultAsync<T, E>, def: T): Promise<T> {
+    return this[Prom].then((res) => res.unwrapOr(def));
+  }
+
+  /**
+   * Returns the contained `Ok` value or computes it from a function.
+   *
+   * ```
+   * const x = Ok(10);
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
+   *
+   * const x = Err(10);
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
+   * ```
+   */
+  async unwrapOrElse(this: ResultAsync<T, E>, f: (err: E) => T): Promise<T> {
+    return this[Prom].then((res) => res.unwrapOrElse(f));
+  }
+
+  /**
+   * Returns the contained `Ok` or `Err` value.
+   *
+   * Most problems are better solved using one of the other `unwrap_` methods.
+   * This method should only be used when you are certain that you need it.
+   *
+   * ```
+   * const x = Ok(10);
+   * assert.equal(x.unwrapUnchecked(), 10);
+   *
+   * const x = Err(20);
+   * assert.equal(x.unwrapUnchecked(), 20);
+   * ```
+   */
+  async unwrapUnchecked(this: ResultAsync<T, E>): Promise<T | E> {
+    return this[Prom].then((res) => res.unwrapUnchecked());
+  }
 }
