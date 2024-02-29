@@ -612,4 +612,117 @@ class ResultTypeAsync<T, E> {
     );
   }
 
+  /**
+   * Returns the provided default if `Err`, otherwise calls `f` with the
+   * `Ok` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x = Err(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  async mapOr<U>(this: ResultAsync<T, E>, def: U, f: (val: T) => U): Promise<U> {
+    return this.then((res) => res.mapOr(def, f));
+  }
+
+  /**
+   * Returns the provided default if `Err`, otherwise calls `f` with the
+   * `Ok` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x = Err(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  async mapAsyncOr<U>(this: ResultAsync<T, E>, def: U, f: (val: T) => Promise<U>): Promise<U> {
+    return this.then((res) => {
+      if (res.isErr()) {
+        return def;
+      }
+
+      return f(res.unwrap());
+    });
+  }
+
+  /**
+   * Computes a default return value if `Err`, otherwise calls `f` with the
+   * `Ok` value and returns the result.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x = Err(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 2);
+   * ```
+   */
+  async mapOrElse<U>(this: ResultAsync<T, E>, def: (err: E) => U, f: (val: T) => U): Promise<U> {
+    return this.then((res) => res.mapOrElse(def, f));
+  }
+
+  /**
+   * Computes a default return value if `Err`, otherwise calls `f` with the
+   * `Ok` value and returns the result.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x = Err(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 2);
+   * ```
+   */
+  async mapOrElseAsync<U>(this: ResultAsync<T, E>, def: (err: E) => U, f: (val: T) => Promise<U>): Promise<U> {
+    return this.then((res) => {
+      if (res.isErr()) {
+        return def(res.unwrapErr());
+      }
+
+      return f(res.unwrap());
+    });
+  }
+
+  /**
+   * Computes a default return value if `Err`, otherwise calls `f` with the
+   * `Ok` value and returns the result.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x = Err(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 2);
+   * ```
+   */
+  async mapAsyncOrElseAsync<U>(this: ResultAsync<T, E>, def: (err: E) => Promise<U>, f: (val: T) => Promise<U>): Promise<U> {
+    return this.then((res) => {
+      if (res.isErr()) {
+        return def(res.unwrapErr());
+      }
+
+      return f(res.unwrap());
+    });
+  }
 }
