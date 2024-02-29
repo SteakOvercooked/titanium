@@ -788,3 +788,37 @@ class ResultTypeAsync<T, E> {
     return this;
   }
 }
+
+function safe<T>(promise: Promise<T>): ResultAsync<T, Error>;
+function safe<T, E>(
+  promise: Promise<T>,
+  mapErr: (err: unknown) => E
+): ResultAsync<T, E>;
+function safe<T, E, F extends ((err: unknown) => E) | undefined>(
+  promise: Promise<T>,
+  mapErr?: F
+): F extends undefined ? ResultAsync<T, Error> : ResultAsync<T, E> {
+  return new ResultTypeAsync(
+    promise.then(
+      (val) => Ok(val),
+      (err) => {
+        if (mapErr !== undefined) {
+          return Err(mapErr(err));
+        }
+
+        return Err(err instanceof Error ? err : new Error(String(err)));
+      }
+    ) as any
+  ) as any;
+}
+
+function unsafe<T>(promise: Promise<T>) {
+  return new ResultTypeAsync(
+    promise.then((val) => Ok(val))
+  );
+}
+
+export const ResultAsync = Object.freeze({
+  safe,
+  unsafe
+});
