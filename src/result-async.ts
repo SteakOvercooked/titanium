@@ -429,4 +429,111 @@ class ResultTypeAsync<T, E> {
       })
     );
   }
+
+  /**
+   * Returns itself if the Result is `Err`, otherwise returns `resb`.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xand = x.and(Ok(1));
+   * assert.equal(xand.unwrap(), 1);
+   *
+   * const x = Err(10);
+   * const xand = x.and(Ok(1));
+   * assert.equal(xand.unwrapErr(), 10);
+   *
+   * const x = Ok(10);
+   * const xand = x.and(Err(1));
+   * assert.equal(xand.unwrapErr(), 1);
+   * ```
+   */
+  and<U>(this: ResultAsync<T, E>, resb: Result<U, E>): ResultAsync<U, E> {
+    return new ResultTypeAsync(
+      this.then((res) => res.and(resb))
+    );
+  }
+
+  /**
+   * Returns itself if the Result is `Err`, otherwise returns `resb`.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xand = x.and(Ok(1));
+   * assert.equal(xand.unwrap(), 1);
+   *
+   * const x = Err(10);
+   * const xand = x.and(Ok(1));
+   * assert.equal(xand.unwrapErr(), 10);
+   *
+   * const x = Ok(10);
+   * const xand = x.and(Err(1));
+   * assert.equal(xand.unwrapErr(), 1);
+   * ```
+   */
+  andAsync<U>(this: ResultAsync<T, E>, resb: ResultAsync<U, E>): ResultAsync<U, E> {
+    return new ResultTypeAsync(
+      this.then((res) => {
+        if (res.isErr()) {
+          return res;
+        }
+
+        return resb.then((resb) => res.and(resb));
+      })
+    );
+  }
+
+  /**
+   * Returns itself if the Result is `Err`, otherwise calls `f` with the `Ok`
+   * value and returns the result.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.unwrap(), 11);
+   *
+   * const x = Err(10);
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.unwrapErr(), 10);
+   *
+   * const x = Ok(10);
+   * const xand = x.and(Err(1));
+   * assert.equal(xand.unwrapErr(), 1);
+   * ```
+   */
+  andThen<U>(this: ResultAsync<T, E>, f: (val: T) => Result<U, E>): ResultAsync<U, E> {
+    return new ResultTypeAsync(
+      this.then((res) => res.andThen(f))
+    );
+  }
+
+  /**
+   * Returns itself if the Result is `Err`, otherwise calls `f` with the `Ok`
+   * value and returns the result.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.unwrap(), 11);
+   *
+   * const x = Err(10);
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.unwrapErr(), 10);
+   *
+   * const x = Ok(10);
+   * const xand = x.and(Err(1));
+   * assert.equal(xand.unwrapErr(), 1);
+   * ```
+   */
+  andThenAsync<U>(this: ResultAsync<T, E>, f: (val: T) => Promise<Result<U, E>>): ResultAsync<U, E> {
+    return new ResultTypeAsync(
+      this.then((res) => {
+        if (res.isErr()) {
+          return res;
+        }
+
+        return f(res.unwrap());
+      })
+    );
+  }
+
 }
