@@ -12,6 +12,13 @@ class ResultTypeAsync<T, E> {
     this[Prom] = producer;
   }
 
+  then<A, B>(
+    onSuccess?: (res: Result<T, E>) => A | PromiseLike<A>,
+    onFailure?: (err: unknown) => B | PromiseLike<B>,
+  ): Promise<A | B> {
+    return this[Prom].then(onSuccess, onFailure);
+  }
+
   /**
    * Returns a `Promise` that resolves to `T` (if `Ok`),
    * or `err` otherwise. The `err` value must be falsey and defaults to `undefined`.
@@ -30,7 +37,7 @@ class ResultTypeAsync<T, E> {
   async into(this: ResultAsync<T, E>): Promise<T | undefined>;
   async into<U extends FalseyValues>(this: ResultAsync<T, E>, err: U): Promise<T | U>;
   async into(this: ResultAsync<T, E>, err?: FalseyValues): Promise<T | FalseyValues> {
-    return this[Prom].then((res) => res.into(err));
+    return this.then((res) => res.into(err));
   }
 
   /**
@@ -46,7 +53,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async intoTuple(this: ResultAsync<T, E>): Promise<[null, T] | [E, null]> {
-    return this[Prom].then((res) => res.intoTuple());
+    return this.then((res) => res.intoTuple());
   }
 
   /**
@@ -61,7 +68,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async isOk(this: ResultAsync<T, E>): Promise<boolean> {
-    return this[Prom].then((res) => res.isOk());
+    return this.then((res) => res.isOk());
   }
 
   /**
@@ -76,7 +83,28 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async isOkAnd(this: ResultAsync<T, E>, f: (val: T) => boolean): Promise<boolean> {
-    return this[Prom].then((res) => res.isOkAnd(f));
+    return this.then((res) => res.isOkAnd(f));
+  }
+
+  /**
+   * Returns a `Promise` that resolves to true (if `Ok` and the value inside of it matches a predicate).
+   *
+   * ```
+   * const x = OkAsync(10);
+   * assert.equal(await x.isOkAnd((val) === 10), true);
+   *
+   * const x = ErrAsync(10);
+   * assert.equal(await x.isOkAnd((val) === 10), false);
+   * ```
+   */
+  async isOkAndAsync(this: ResultAsync<T, E>, f: (val: T) => Promise<boolean>): Promise<boolean> {
+    const res = await this;
+    
+    if (res.isErr()) {
+      return false;
+    }
+
+    return f(res.unwrap());
   }
 
   /**
@@ -91,7 +119,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async isErr(this: ResultAsync<T, E>): Promise<boolean> {
-    return this[Prom].then((res) => res.isErr());
+    return this.then((res) => res.isErr());
   }
 
   /**
@@ -106,7 +134,28 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async isErrAnd(this: ResultAsync<T, E>, f: (err: E) => boolean): Promise<boolean> {
-    return this[Prom].then((res) => res.isErrAnd(f));
+    return this.then((res) => res.isErrAnd(f));
+  }
+
+  /**
+   * Returns a `Promise` that resolves to true (if `Err` and the value inside of it matches a predicate).
+   *
+   * ```
+   * const x = OkAsync(10);
+   * assert.equal(await x.isErrAnd((err) => err === 10), false);
+   *
+   *  const x = ErrAsync(10);
+   *  assert.equal(await x.isErrAnd((err) => err === 10), true);
+   * ```
+   */
+  async isErrAndAsync(this: ResultAsync<T, E>, f: (err: E) => Promise<boolean>): Promise<boolean> {
+    const res = await this;
+    
+    if (res.isOk()) {
+      return false;
+    }
+
+    return f(res.unwrapErr());
   }
 
   /**
@@ -169,7 +218,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async expect(this: ResultAsync<T, E>, msg: string): Promise<T> {
-    return this[Prom].then((res) => res.expect(msg));
+    return this.then((res) => res.expect(msg));
   }
 
   /**
@@ -187,7 +236,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async expectErr(this: ResultAsync<T, E>, msg: string): Promise<E> {
-    return this[Prom].then((res) => res.expectErr(msg));
+    return this.then((res) => res.expectErr(msg));
   }
 
   /**
@@ -205,7 +254,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async unwrap(this: ResultAsync<T, E>): Promise<T> {
-    return this[Prom].then((res) => res.unwrap());
+    return this.then((res) => res.unwrap());
   }
 
   /**
@@ -223,7 +272,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async unwrapErr(this: ResultAsync<T, E>): Promise<E> {
-    return this[Prom].then((res) => res.unwrapErr());
+    return this.then((res) => res.unwrapErr());
   }
 
   /**
@@ -241,7 +290,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async unwrapOr(this: ResultAsync<T, E>, def: T): Promise<T> {
-    return this[Prom].then((res) => res.unwrapOr(def));
+    return this.then((res) => res.unwrapOr(def));
   }
 
   /**
@@ -256,7 +305,7 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async unwrapOrElse(this: ResultAsync<T, E>, f: (err: E) => T): Promise<T> {
-    return this[Prom].then((res) => res.unwrapOrElse(f));
+    return this.then((res) => res.unwrapOrElse(f));
   }
 
   /**
@@ -274,6 +323,110 @@ class ResultTypeAsync<T, E> {
    * ```
    */
   async unwrapUnchecked(this: ResultAsync<T, E>): Promise<T | E> {
-    return this[Prom].then((res) => res.unwrapUnchecked());
+    return this.then((res) => res.unwrapUnchecked());
+  }
+
+  /**
+   * Returns the Option if it is `Ok`, otherwise returns `resb`.
+   *
+   * `resb` is eagerly evaluated. If you are passing the result of a function
+   * call, consider `orElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xor = x.or(Ok(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x = Err(10);
+   * const xor = x.or(Ok(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  or(this: ResultAsync<T, E>, resb: Result<T, E>): ResultAsync<T, E> {
+    return new ResultTypeAsync(
+      this.then((res) => res.or(resb))
+    );
+  }
+
+  /**
+   * Returns the Option if it is `Ok`, otherwise returns `resb`.
+   *
+   * `resb` is eagerly evaluated. If you are passing the result of a function
+   * call, consider `orElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xor = x.or(Ok(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x = Err(10);
+   * const xor = x.or(Ok(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  orAsync(this: ResultAsync<T, E>, resb: ResultAsync<T, E>): ResultAsync<T, E> {
+    return new ResultTypeAsync(
+      this.then(async (res) => {
+        if (res.isOk()) {
+          return res;
+        }
+
+        return resb.then(async (resb) => res.or(resb));
+      })
+    );
+  }
+
+  /**
+   * Returns the Result if it is `Ok`, otherwise returns the value of `f()`
+   * mapping `Result<T, E>` to `Result<T, F>`.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xor = x.orElse(() => Ok(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x = Err(10);
+   * const xor = x.orElse(() => Ok(1));
+   * assert.equal(xor.unwrap(), 1);
+   *
+   * const x = Err(10);
+   * const xor = x.orElse((e) => Err(`val ${e}`));
+   * assert.equal(xor.unwrapErr(), "val 10");
+   * ```
+   */
+  orElse<F>(this: ResultAsync<T, E>, f: (err: E) => Result<T, F>): ResultAsync<T, F> {
+    return new ResultTypeAsync(
+      this.then((res) => res.orElse(f))
+    );
+  }
+
+ /**
+  * Returns the Result if it is `Ok`, otherwise returns the value of `f()`
+  * mapping `Result<T, E>` to `Result<T, F>`.
+  *
+  * ```
+  * const x = Ok(10);
+  * const xor = x.orElse(() => Ok(1));
+  * assert.equal(xor.unwrap(), 10);
+  *
+  * const x = Err(10);
+  * const xor = x.orElse(() => Ok(1));
+  * assert.equal(xor.unwrap(), 1);
+  *
+  * const x = Err(10);
+  * const xor = x.orElse((e) => Err(`val ${e}`));
+  * assert.equal(xor.unwrapErr(), "val 10");
+  * ```
+  */
+  orElseAsync<F>(this: ResultAsync<T, E>, f: (err: E) => Promise<Result<T, F>>): ResultAsync<T, F> {
+    return new ResultTypeAsync(
+      this.then((res) => {
+        if (res.isOk()) {
+          return res;
+        }
+
+        return f(res.unwrapErr());
+      })
+    );
   }
 }
