@@ -1,5 +1,6 @@
 import { T, Val, EmptyArray, IterType, FalseyValues, isTruthy } from "./common";
 import { Option, Some, None } from "./option";
+import { ResultAsync } from "./result-async";
 
 export type Ok<T> = ResultType<T, never>;
 export type Err<E> = ResultType<never, E>;
@@ -99,6 +100,21 @@ class ResultType<T, E> {
    }
 
    /**
+    * Returns a `Promise` that resolves with true (if `Ok` and the value inside of it matches a predicate), or false otherwise.
+    *
+    * ```
+    * const x = Ok(10);
+    * assert.equal(x.isOkAnd((n) => n === 10), true);
+    *
+    * const x = Err(10);
+    * assert.equal(x.isOkAnd((n) => n === 10), false);
+    * ```
+    */
+   async isOkAndAsync(this: Result<T, E>, f: (val: T) => Promise<boolean>): Promise<boolean> {
+      return this[T] && f(this[Val] as T);
+   }
+
+   /**
     * Returns true if the Result is `Err` and acts as a type guard.
     *
     * ```
@@ -126,6 +142,22 @@ class ResultType<T, E> {
     * ```
     */
    isErrAnd(this: Result<T, E>, f: (err: E) => boolean): this is Err<E> {
+      return !this[T] && f(this[Val] as E);
+   }
+
+   /**
+    * Returns true if the Result is `Err` and the value inside of it matches a predicate.
+    * Acts as a type guard.
+    *
+    * ```
+    * const x = Ok(10);
+    * assert.equal(x.isErrAnd((n) => n === 10), false);
+    *
+    * const x = Err(10);
+    * assert.equal(x.isErrAnd((n) => n === 10), true);
+    * ```
+    */
+   async isErrAndAsync(this: Result<T, E>, f: (err: E) => Promise<boolean>): Promise<boolean> {
       return !this[T] && f(this[Val] as E);
    }
 
@@ -248,10 +280,10 @@ class ResultType<T, E> {
     *
     * ```
     * const x = Ok(1);
-    * const y = x.unwrap(); // throws
+    * const y = x.unwrapErr(); // throws
     *
     * const x = Err(1);
-    * assert.equal(x.unwrap(), 1);
+    * assert.equal(x.unwrapErr(), 1);
     * ```
     */
    unwrapErr(this: Result<T, E>): E {
@@ -291,8 +323,23 @@ class ResultType<T, E> {
     * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
     * ```
     */
-   unwrapOrElse(this: Result<T, E>, f: () => T): T {
-      return this[T] ? (this[Val] as T) : f();
+   unwrapOrElse(this: Result<T, E>, f: (err: E) => T): T {
+      return this[T] ? (this[Val] as T) : f(this[Val] as E);
+   }
+
+   /**
+    * Returns the contained `Ok` value or computes it from a function.
+    *
+    * ```
+    * const x = Ok(10);
+    * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
+    *
+    * const x = Err(10);
+    * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
+    * ```
+    */
+   async unwrapOrElseAsync(this: Result<T, E>, f: (err: E) => Promise<T>): Promise<T> {
+      return this[T] ? (this[Val] as T) : f(this[Val] as E);
    }
 
    /**
