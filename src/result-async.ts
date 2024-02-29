@@ -1,5 +1,5 @@
 import { Prom, FalseyValues } from "./common";
-import { Result } from "./result";
+import { Err, Ok, Result } from "./result";
 
 export type OkAsync<T> = ResultTypeAsync<T, never>;
 export type ErrAsync<E> = ResultTypeAsync<never, E>;
@@ -532,6 +532,82 @@ class ResultTypeAsync<T, E> {
         }
 
         return f(res.unwrap());
+      })
+    );
+  }
+
+  /**
+   * Maps a `Result<T, E>` to `Result<U, E>` by applying a function to the
+   * `Ok` value.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xmap = x.map((n) => `number ${n}`);
+   * assert.equal(xmap.unwrap(), "number 10");
+   * ```
+   */
+  map<U>(this: ResultAsync<T, E>, f: (val: T) => U): ResultAsync<U, E> {
+    return new ResultTypeAsync(
+      this.then((res) => res.map(f))
+    );
+  }
+
+  /**
+   * Maps a `Result<T, E>` to `Result<U, E>` by applying a function to the
+   * `Ok` value.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xmap = x.map((n) => `number ${n}`);
+   * assert.equal(xmap.unwrap(), "number 10");
+   * ```
+   */
+  mapAsync<U>(this: ResultAsync<T, E>, f: (val: T) => Promise<U>): ResultAsync<U, E> {
+    return new ResultTypeAsync(
+      this.then((res) => {
+        if (res.isErr()) {
+          return Err(res.unwrapErr());
+        }
+
+        return f(res.unwrap()).then((val) => Ok(val));
+      })
+    );
+  }
+
+  /**
+   * Maps a `Result<T, E>` to `Result<T, F>` by applying a function to the
+   * `Err` value.
+   *
+   * ```
+   * const x = Err(10);
+   * const xmap = x.mapErr((n) => `number ${n}`);
+   * assert.equal(xmap.unwrapErr(), "number 10");
+   * ```
+   */
+  mapErr<F>(this: ResultAsync<T, E>, op: (err: E) => F): ResultAsync<T, F> {
+    return new ResultTypeAsync(
+      this.then((res) => res.mapErr(op))
+    );
+  }
+
+  /**
+   * Maps a `Result<T, E>` to `Result<T, F>` by applying a function to the
+   * `Err` value.
+   *
+   * ```
+   * const x = Err(10);
+   * const xmap = x.mapErr((n) => `number ${n}`);
+   * assert.equal(xmap.unwrapErr(), "number 10");
+   * ```
+   */
+  mapErrAsync<F>(this: ResultAsync<T, E>, op: (err: E) => Promise<F>): ResultAsync<T, F> {
+    return new ResultTypeAsync(
+      this.then((res) => {
+        if (res.isOk()) {
+          return Ok(res.unwrap());
+        }
+
+        return op(res.unwrapErr()).then((val) => Err(val));
       })
     );
   }
