@@ -381,6 +381,30 @@ class ResultType<T, E> {
    }
 
    /**
+    * Returns the Option if it is `Ok`, otherwise returns `resb`.
+    *
+    * `resb` is eagerly evaluated. If you are passing the result of a function
+    * call, consider `orElse`, which is lazily evaluated.
+    *
+    * ```
+    * const x = Ok(10);
+    * const xor = x.or(Ok(1));
+    * assert.equal(xor.unwrap(), 10);
+    *
+    * const x = Err(10);
+    * const xor = x.or(Ok(1));
+    * assert.equal(xor.unwrap(), 1);
+    * ```
+    */
+   orAsync(this: Result<T, E>, resb: ResultAsync<T, E>): ResultAsync<T, E> {
+      if (!this[T]) {
+         return resb;
+      }
+
+      return ResultAsync.unsafe(Promise.resolve(this[Val] as T));
+   }
+
+   /**
     * Returns the Result if it is `Ok`, otherwise returns the value of `f()`
     * mapping `Result<T, E>` to `Result<T, F>`.
     *
@@ -400,6 +424,32 @@ class ResultType<T, E> {
     */
    orElse<F>(this: Result<T, E>, f: (err: E) => Result<T, F>): Result<T, F> {
       return this[T] ? (this as unknown as Result<T, F>) : f(this[Val] as E);
+   }
+
+   /**
+    * Returns the Result if it is `Ok`, otherwise returns the value of `f()`
+    * mapping `Result<T, E>` to `Result<T, F>`.
+    *
+    * ```
+    * const x = Ok(10);
+    * const xor = x.orElse(() => Ok(1));
+    * assert.equal(xor.unwrap(), 10);
+    *
+    * const x = Err(10);
+    * const xor = x.orElse(() => Ok(1));
+    * assert.equal(xor.unwrap(), 1);
+    *
+    * const x = Err(10);
+    * const xor = x.orElse((e) => Err(`val ${e}`));
+    * assert.equal(xor.unwrapErr(), "val 10");
+    * ```
+    */
+   orElseAsync<F>(this: Result<T, E>, f: (err: E) => Promise<Result<T, F>>): ResultAsync<T, F> {
+      if (!this[T]) {
+         return ResultAsync.unsafe(f(this[Val] as E).then((res) => res)) as any;
+      }
+
+      return ResultAsync.unsafe(Promise.resolve(this[Val] as T));
    }
 
    /**

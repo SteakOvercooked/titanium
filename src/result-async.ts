@@ -366,13 +366,7 @@ class ResultTypeAsync<T, E> {
    */
   orAsync(this: ResultAsync<T, E>, resb: ResultAsync<T, E>): ResultAsync<T, E> {
     return new ResultTypeAsync(
-      this.then(async (res) => {
-        if (res.isOk()) {
-          return res;
-        }
-
-        return resb.then(async (resb) => res.or(resb));
-      })
+      this.then((res) => res.orAsync(resb))
     );
   }
 
@@ -420,13 +414,7 @@ class ResultTypeAsync<T, E> {
   */
   orElseAsync<F>(this: ResultAsync<T, E>, f: (err: E) => Promise<Result<T, F>>): ResultAsync<T, F> {
     return new ResultTypeAsync(
-      this.then((res) => {
-        if (res.isOk()) {
-          return res;
-        }
-
-        return f(res.unwrapErr());
-      })
+      this.then((res) => res.orElseAsync(f))
     );
   }
 
@@ -812,7 +800,7 @@ function safe<T, E, F extends ((err: unknown) => E) | undefined>(
   ) as any;
 }
 
-function unsafe<T>(promise: Promise<T>) {
+function unsafe<T>(promise: Promise<T>): ResultAsync<T, never> {
   return new ResultTypeAsync(
     promise.then((val) => Ok(val))
   );
