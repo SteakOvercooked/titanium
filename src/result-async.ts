@@ -5,7 +5,7 @@ export type OkAsync<T> = ResultTypeAsync<T, never>;
 export type ErrAsync<E> = ResultTypeAsync<never, E>;
 export type ResultAsync<T, E> = ResultTypeAsync<T, E>;
 
-class ResultTypeAsync<T, E> {
+export class ResultTypeAsync<T, E> {
   readonly [Prom]: Promise<Result<T, E>>;
 
   constructor(producer: Promise<Result<T, E>>) {
@@ -514,13 +514,7 @@ class ResultTypeAsync<T, E> {
    */
   andThenAsync<U>(this: ResultAsync<T, E>, f: (val: T) => Promise<Result<U, E>>): ResultAsync<U, E> {
     return new ResultTypeAsync(
-      this.then((res) => {
-        if (res.isErr()) {
-          return res;
-        }
-
-        return f(res.unwrap());
-      })
+      this.then((res) => res.andThenAsync(f))
     );
   }
 
@@ -800,13 +794,6 @@ function safe<T, E, F extends ((err: unknown) => E) | undefined>(
   ) as any;
 }
 
-function unsafe<T>(promise: Promise<T>): ResultAsync<T, never> {
-  return new ResultTypeAsync(
-    promise.then((val) => Ok(val))
-  );
-}
-
 export const ResultAsync = Object.freeze({
-  safe,
-  unsafe
+  safe
 });
