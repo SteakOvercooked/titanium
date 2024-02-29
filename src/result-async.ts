@@ -725,4 +725,66 @@ class ResultTypeAsync<T, E> {
       return f(res.unwrap());
     });
   }
+
+  /**
+   * Transforms the `Result<T, E>` into an `Option<T>`, mapping `Ok(v)` to
+   * `Some(v)`, discarding any `Err` value and mapping to None.
+   *
+   * ```
+   * const x = Ok(10);
+   * const opt = x.ok();
+   * assert.equal(x.isSome(), true);
+   * assert.equal(x.unwrap(), 10);
+   *
+   * const x = Err(10);
+   * const opt = x.ok();
+   * assert.equal(x.isNone(), true);
+   * const y = x.unwrap(); // throws
+   * ```
+   */
+  // ok(this: Result<T, E>): Option<T> {
+  //   return this[T] ? Some(this[Val] as T) : None;
+  // }
+
+  /**
+   * Calls the provided closure with the contained Ok value otherwise does nothing.
+   * 
+   * ```
+   * // Prints the contained value.
+   * Ok(10).inspect((n) => console.log(n));
+   * 
+   * // Doesn't produce any output.
+   * Err(10).inspect((n) => console.log(n));
+   * ```
+   */
+  inspect(this: ResultAsync<T, E>, f: (val: T) => void): ResultAsync<T, E> {
+    this.then((res) => {
+      if (res.isOk()) {
+        f(res.unwrap());
+      }
+    });
+
+    return this;
+  }
+
+  /**
+   * Calls the provided closure with the contained Err value otherwise does nothing.
+   * 
+   * ```
+   * // Doesn't produce any output.
+   * Ok(10).inspectErr((n) => console.log(n));
+   * 
+   * // Prints the contained error.
+   * Err(10).inspectErr((n) => console.log(n));
+   * ```
+   */
+  inspectErr(this: ResultAsync<T, E>, f: (err: E) => void): ResultAsync<T, E> {
+    this.then((res) => {
+      if (res.isErr()) {
+        f(res.unwrapErr());
+      }
+    });
+
+    return this;
+  }
 }
