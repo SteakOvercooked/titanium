@@ -860,6 +860,7 @@ Result.from = from;
 Result.nonNull = nonNull;
 Result.qty = qty;
 Result.safe = safe;
+Result.safyAsync = safeAsync;
 Result.all = all;
 Result.any = any;
 
@@ -1032,24 +1033,49 @@ function qty<T extends number>(val: T): Result<number, null> {
  * assert.equal(x.unwrap(), "Hello World");
  * ```
  */
-function safe<T, A extends any[]>(
-   fn: (...args: A) => T extends PromiseLike<any> ? never : T,
-   ...args: A
+function safe<T>(
+   fn: () => T extends PromiseLike<any> ? never : T
 ): Result<T, Error>;
-function safe<T>(promise: Promise<T>): Promise<Result<T, Error>>;
-function safe<T, A extends any[]>(
-   fn: ((...args: A) => T) | Promise<T>,
-   ...args: A
-): Result<T, Error> | Promise<Result<T, Error>> {
-   if (fn instanceof Promise) {
-      return fn.then((val) => Ok(val), toError);
-   }
-
+function safe<T, E>(
+   fn: () => T extends PromiseLike<any> ? never : T,
+   mapErr: (err: unknown) => E
+): Result<T, E>;
+function safe<T, E, F extends ((err: unknown) => E) | undefined>(
+   fn: () => T extends PromiseLike<any> ? never : T,
+   mapErr?: F
+): F extends undefined ? Result<T, Error> : Result<T, E> {
    try {
-      return Ok(fn(...args));
+      return Ok(fn());
    } catch (err) {
-      return toError(err);
+      if (mapErr !== undefined) {
+         return Err(mapErr(err)) as any;
+      }
+
+      return toError(err) as any;
    }
+}
+
+function safeAsync<T>(promise: Promise<T>): ResultAsync<T, Error>;
+function safeAsync<T, E>(
+  promise: Promise<T>,
+  mapErr: (err: unknown) => E
+): ResultAsync<T, E>;
+function safeAsync<T, E, F extends ((err: unknown) => E) | undefined>(
+  promise: Promise<T>,
+  mapErr?: F
+): F extends undefined ? ResultAsync<T, Error> : ResultAsync<T, E> {
+  return new ResultTypeAsync(
+    promise.then(
+      (val) => Ok(val),
+      (err) => {
+        if (mapErr !== undefined) {
+          return Err(mapErr(err));
+        }
+
+        return toError(err);
+      }
+    ) as any
+  ) as any;
 }
 
 function toError(err: unknown): Err<Error> {
