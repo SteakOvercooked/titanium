@@ -658,13 +658,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   async mapAsyncOrElse<U>(this: ResultAsync<T, E>, def: (err: E) => U, f: (val: T) => Promise<U>): Promise<U> {
-    return this.then((res) => {
-      if (res.isErr()) {
-        return def(res.unwrapErr());
-      }
-
-      return f(res.unwrap());
-    });
+    return this.then((res) => res.mapAsyncOrElse(def, f));
   }
 
   /**
@@ -682,13 +676,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   async mapOrElseAsync<U>(this: ResultAsync<T, E>, def: (err: E) => Promise<U>, f: (val: T) => U): Promise<U> {
-    return this.then((res) => {
-      if (res.isErr()) {
-        return def(res.unwrapErr());
-      }
-
-      return f(res.unwrap());
-    });
+    return this.then((res) => res.mapOrElseAsync(def, f));
   }
 
   /**
@@ -706,13 +694,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   async mapAsyncOrElseAsync<U>(this: ResultAsync<T, E>, def: (err: E) => Promise<U>, f: (val: T) => Promise<U>): Promise<U> {
-    return this.then((res) => {
-      if (res.isErr()) {
-        return def(res.unwrapErr());
-      }
-
-      return f(res.unwrap());
-    });
+    return this.then((res) => res.mapAsyncOrElseAsync(def, f));
   }
 
   /**
