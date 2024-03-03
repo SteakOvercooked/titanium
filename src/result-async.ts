@@ -545,14 +545,9 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   mapAsync<U>(this: ResultAsync<T, E>, f: (val: T) => Promise<U>): ResultAsync<U, E> {
+    // return this.then((res) => res.mapAsyncOr(f))
     return new ResultTypeAsync(
-      this.then((res) => {
-        if (res.isErr()) {
-          return Err(res.unwrapErr());
-        }
-
-        return f(res.unwrap()).then((val) => Ok(val));
-      })
+      this.then((res) => res.mapAsync(f))
     );
   }
 
@@ -584,13 +579,7 @@ export class ResultTypeAsync<T, E> {
    */
   mapErrAsync<F>(this: ResultAsync<T, E>, op: (err: E) => Promise<F>): ResultAsync<T, F> {
     return new ResultTypeAsync(
-      this.then((res) => {
-        if (res.isOk()) {
-          return Ok(res.unwrap());
-        }
-
-        return op(res.unwrapErr()).then((val) => Err(val));
-      })
+      this.then((res) => res.mapErrAsync(op))
     );
   }
 
@@ -633,13 +622,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   async mapAsyncOr<U>(this: ResultAsync<T, E>, def: U, f: (val: T) => Promise<U>): Promise<U> {
-    return this.then((res) => {
-      if (res.isErr()) {
-        return def;
-      }
-
-      return f(res.unwrap());
-    });
+    return this.then((res) => res.mapAsyncOr(def, f));
   }
 
   /**
@@ -674,7 +657,31 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrap(), 2);
    * ```
    */
-  async mapOrElseAsync<U>(this: ResultAsync<T, E>, def: (err: E) => U, f: (val: T) => Promise<U>): Promise<U> {
+  async mapAsyncOrElse<U>(this: ResultAsync<T, E>, def: (err: E) => U, f: (val: T) => Promise<U>): Promise<U> {
+    return this.then((res) => {
+      if (res.isErr()) {
+        return def(res.unwrapErr());
+      }
+
+      return f(res.unwrap());
+    });
+  }
+
+  /**
+   * Computes a default return value if `Err`, otherwise calls `f` with the
+   * `Ok` value and returns the result.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x = Err(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 2);
+   * ```
+   */
+  async mapOrElseAsync<U>(this: ResultAsync<T, E>, def: (err: E) => Promise<U>, f: (val: T) => U): Promise<U> {
     return this.then((res) => {
       if (res.isErr()) {
         return def(res.unwrapErr());

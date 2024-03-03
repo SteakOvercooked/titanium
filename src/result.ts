@@ -564,6 +564,26 @@ class ResultType<T, E> {
    }
 
    /**
+    * Maps a `Result<T, E>` to `Result<U, E>` by applying a function to the
+    * `Ok` value.
+    *
+    * ```
+    * const x = Ok(10);
+    * const xmap = x.map((n) => `number ${n}`);
+    * assert.equal(xmap.unwrap(), "number 10");
+    * ```
+    */
+   mapAsync<U>(this: Result<T, E>, f: (val: T) => Promise<U>): ResultAsync<U, E> {
+      if (!this[T]) {
+         return new ResultTypeAsync(Promise.resolve(this as any));
+      }
+
+      return new ResultTypeAsync(
+         f(this[Val] as T).then((val) => Ok(val))
+      );
+   }
+
+   /**
     * Maps a `Result<T, E>` to `Result<T, F>` by applying a function to the
     * `Err` value.
     *
@@ -578,6 +598,26 @@ class ResultType<T, E> {
          this[T] ? (this[Val] as T) : op(this[Val] as E),
          this[T]
       ) as Result<T, F>;
+   }
+
+   /**
+    * Maps a `Result<T, E>` to `Result<T, F>` by applying a function to the
+    * `Err` value.
+    *
+    * ```
+    * const x = Err(10);
+    * const xmap = x.mapErr((n) => `number ${n}`);
+    * assert.equal(xmap.unwrapErr(), "number 10");
+    * ```
+    */
+   mapErrAsync<F>(this: Result<T, E>, op: (err: E) => Promise<F>): ResultAsync<T, F> {
+      if (this[T]) {
+         return new ResultTypeAsync(Promise.resolve(this as any));
+      }
+
+      return new ResultTypeAsync(
+         op(this[Val] as E).then((err) => Err(err))
+      );
    }
 
    /**
@@ -599,6 +639,31 @@ class ResultType<T, E> {
     */
    mapOr<U>(this: Result<T, E>, def: U, f: (val: T) => U): U {
       return this[T] ? f(this[Val] as T) : def;
+   }
+
+   /**
+    * Returns the provided default if `Err`, otherwise calls `f` with the
+    * `Ok` value and returns the result.
+    *
+    * The provided default is eagerly evaluated. If you are passing the result
+    * of a function call, consider `mapOrElse`, which is lazily evaluated.
+    *
+    * ```
+    * const x = Ok(10);
+    * const xmap = x.mapOr(1, (n) => n + 1);
+    * assert.equal(xmap.unwrap(), 11);
+    *
+    * const x = Err(10);
+    * const xmap = x.mapOr(1, (n) => n + 1);
+    * assert.equal(xmap.unwrap(), 1);
+    * ```
+    */
+   async mapAsyncOr<U>(this: Result<T, E>, def: U, f: (val: T) => Promise<U>): Promise<U> {
+      if (!this[T]) {
+         return Promise.resolve(def);
+      }
+      
+      return f(this[Val] as T);
    }
 
    /**
