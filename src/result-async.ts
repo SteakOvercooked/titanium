@@ -729,12 +729,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   inspect(this: ResultAsync<T, E>, f: (val: T) => void): ResultAsync<T, E> {
-    this.then((res) => {
-      if (res.isOk()) {
-        f(res.unwrap());
-      }
-    });
-
+    this.then((res) => res.inspect(f));
     return this;
   }
 
@@ -750,12 +745,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   inspectErr(this: ResultAsync<T, E>, f: (err: E) => void): ResultAsync<T, E> {
-    this.then((res) => {
-      if (res.isErr()) {
-        f(res.unwrapErr());
-      }
-    });
-
+    this.then((res) => res.inspectErr(f));
     return this;
   }
 }

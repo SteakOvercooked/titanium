@@ -860,7 +860,7 @@ Result.from = from;
 Result.nonNull = nonNull;
 Result.qty = qty;
 Result.safe = safe;
-Result.safyAsync = safeAsync;
+Result.safeAsync = safeAsync;
 Result.all = all;
 Result.any = any;
 
