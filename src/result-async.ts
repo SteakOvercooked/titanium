@@ -1,8 +1,6 @@
 import { Prom, FalseyValues } from "./common";
 import { Result } from "./result";
 
-export type OkAsync<T> = ResultTypeAsync<T, never>;
-export type ErrAsync<E> = ResultTypeAsync<never, E>;
 export type ResultAsync<T, E> = ResultTypeAsync<T, E>;
 
 export class ResultTypeAsync<T, E> {
