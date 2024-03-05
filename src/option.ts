@@ -225,6 +225,21 @@ class OptionType<T> {
    }
 
    /**
+    * Returns the contained `Some` value or computes it from a function.
+    *
+    * ```
+    * const x = Some(10);
+    * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
+    *
+    * const x: Option<number> = None;
+    * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
+    * ```
+    */
+   async unwrapOrElseAsync(this: Option<T>, f: () => Promise<T>): Promise<T> {
+      return this[T] ? this[Val] : f();
+   }
+
+   /**
     * Returns the contained `Some` value or undefined if `None`.
     *
     * Most problems are better solved using one of the other `unwrap_` methods.

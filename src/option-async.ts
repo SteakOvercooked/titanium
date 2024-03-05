@@ -151,4 +151,71 @@ export class OptionTypeAsync<T> {
   async expect(this: OptionAsync<T>, msg: string): Promise<T> {
     return this.then((opt) => opt.expect(msg));
   }
+
+  /**
+   * Returns the contained `Some` value and throws if `None`.
+   *
+   * To avoid throwing, consider `isSome`, `unwrapOr`, `unwrapOrElse` or
+   * `match` to handle the `None` case. To throw a more informative error use
+   * `expect`.
+   *
+   * ```
+   * const x = Some(1);
+   * assert.equal(x.unwrap(), 1);
+   *
+   * const x: Option<number> = None;
+   * const y = x.unwrap(); // throws
+   * ```
+   */
+  async unwrap(this: OptionAsync<T>): Promise<T> {
+    return this.then((opt) => opt.unwrap());
+  }
+
+  /**
+   * Returns the contained `Some` value or a provided default.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `unwrapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.unwrapOr(1), 10);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.unwrapOr(1), 1);
+   * ```
+   */
+  async unwrapOr(this: OptionAsync<T>, def: T): Promise<T> {
+    return this.then((opt) => opt.unwrapOr(def));
+  }
+
+  /**
+   * Returns the contained `Some` value or computes it from a function.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
+   * ```
+   */
+  async unwrapOrElse(this: OptionAsync<T>, f: () => T): Promise<T> {
+    return this.then((opt) => opt.unwrapOrElse(f));
+  }
+
+  /**
+   * Returns the contained `Some` value or computes it from a function.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
+   * ```
+   */
+  async unwrapOrElseAsync(this: OptionAsync<T>, f: () => Promise<T>): Promise<T> {
+    return this.then((opt) => opt.unwrapOrElseAsync(f));
+  }
 }
