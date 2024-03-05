@@ -278,6 +278,30 @@ class OptionType<T> {
    }
 
    /**
+    * Returns the Option if it is `Some`, otherwise returns `optb`.
+    *
+    * `optb` is eagerly evaluated. If you are passing the result of a function
+    * call, consider `orElse`, which is lazily evaluated.
+    *
+    * ```
+    * const x = Some(10);
+    * const xor = x.or(Some(1));
+    * assert.equal(xor.unwrap(), 10);
+    *
+    * const x: Option<number> = None;
+    * const xor = x.or(Some(1));
+    * assert.equal(xor.unwrap(), 1);
+    * ```
+    */
+   orAsync(this: Option<T>, optb: OptionAsync<T>): OptionAsync<T> {
+      if (!this[T]) {
+         return optb;
+      }
+
+      return new OptionTypeAsync(Promise.resolve(this));
+   }
+
+   /**
     * Returns the Option if it is `Some`, otherwise returns the value of `f()`.
     *
     * ```
@@ -292,6 +316,27 @@ class OptionType<T> {
     */
    orElse(this: Option<T>, f: () => Option<T>): Option<T> {
       return this[T] ? this : f();
+   }
+
+   /**
+    * Returns the Option if it is `Some`, otherwise returns the value of `f()`.
+    *
+    * ```
+    * const x = Some(10);
+    * const xor = x.orElse(() => Some(1));
+    * assert.equal(xor.unwrap(), 10);
+    *
+    * const x: Option<number> = None;
+    * const xor = x.orElse(() => Some(1));
+    * assert.equal(xor.unwrap(), 1);
+    * ```
+    */
+   orElseAsync(this: Option<T>, f: () => Promise<Option<T>>): OptionAsync<T> {
+      if (!this[T]) {
+         return new OptionTypeAsync(f());
+      }
+
+      return new OptionTypeAsync(Promise.resolve(this));
    }
 
    /**

@@ -218,4 +218,85 @@ export class OptionTypeAsync<T> {
   async unwrapOrElseAsync(this: OptionAsync<T>, f: () => Promise<T>): Promise<T> {
     return this.then((opt) => opt.unwrapOrElseAsync(f));
   }
+
+  /**
+   * Returns the contained `Some` value or undefined if `None`.
+   *
+   * Most problems are better solved using one of the other `unwrap_` methods.
+   * This method should only be used when you are certain that you need it.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.unwrapUnchecked(), 10);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.unwrapUnchecked(), undefined);
+   * ```
+   */
+  async unwrapUnchecked(this: OptionAsync<T>): Promise<T | undefined> {
+    return this.then((opt) => opt.unwrapUnchecked());
+  }
+
+  /**
+   * Returns the Option if it is `Some`, otherwise returns `optb`.
+   *
+   * `optb` is eagerly evaluated. If you are passing the result of a function
+   * call, consider `orElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xor = x.or(Some(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const xor = x.or(Some(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  or(this: OptionAsync<T>, optb: Option<T>): OptionAsync<T> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.or(optb))
+    );
+  }
+
+  /**
+   * Returns the Option if it is `Some`, otherwise returns `optb`.
+   *
+   * `optb` is eagerly evaluated. If you are passing the result of a function
+   * call, consider `orElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xor = x.or(Some(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const xor = x.or(Some(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  orAsync(this: OptionAsync<T>, optb: OptionAsync<T>): OptionAsync<T> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.orAsync(optb))
+    );
+  }
+
+  /**
+   * Returns the Option if it is `Some`, otherwise returns the value of `f()`.
+   *
+   * ```
+   * const x = Some(10);
+   * const xor = x.orElse(() => Some(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const xor = x.orElse(() => Some(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  orElse(this: OptionAsync<T>, f: () => Option<T>): OptionAsync<T> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.orElse(f))
+    );
+  }
 }
