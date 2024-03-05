@@ -299,4 +299,98 @@ export class OptionTypeAsync<T> {
       this.then((opt) => opt.orElse(f))
     );
   }
+
+  /**
+   * Returns `None` if the Option is `None`, otherwise returns `optb`.
+   *
+   * ```
+   * const x = Some(10);
+   * const xand = x.and(Some(1));
+   * assert.equal(xand.unwrap(), 1);
+   *
+   * const x: Option<number> = None;
+   * const xand = x.and(Some(1));
+   * assert.equal(xand.isNone(), true);
+   *
+   * const x = Some(10);
+   * const xand = x.and(None);
+   * assert.equal(xand.isNone(), true);
+   * ```
+   */
+  and<U>(this: OptionAsync<T>, optb: Option<U>): OptionAsync<U> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.and(optb))
+    );
+  }
+
+  /**
+   * Returns `None` if the Option is `None`, otherwise returns `optb`.
+   *
+   * ```
+   * const x = Some(10);
+   * const xand = x.and(Some(1));
+   * assert.equal(xand.unwrap(), 1);
+   *
+   * const x: Option<number> = None;
+   * const xand = x.and(Some(1));
+   * assert.equal(xand.isNone(), true);
+   *
+   * const x = Some(10);
+   * const xand = x.and(None);
+   * assert.equal(xand.isNone(), true);
+   * ```
+   */
+  andAsync<U>(this: OptionAsync<T>, optb: OptionAsync<U>): OptionAsync<U> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.andAsync(optb))
+    );
+  }
+
+  /**
+   * Returns `None` if the option is `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * ```
+   * const x = Some(10);
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.isNone(), true);
+   *
+   * const x = Some(10);
+   * const xand = x.andThen(() => None);
+   * assert.equal(xand.isNone(), true);
+   * ```
+   */
+  andThen<U>(this: OptionAsync<T>, f: (val: T) => Option<U>): OptionAsync<U> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.andThen(f))
+    );
+  }
+
+  /**
+   * Returns `None` if the option is `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * ```
+   * const x = Some(10);
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.isNone(), true);
+   *
+   * const x = Some(10);
+   * const xand = x.andThen(() => None);
+   * assert.equal(xand.isNone(), true);
+   * ```
+   */
+  andThenAsync<U>(this: OptionAsync<T>, f: (val: T) => Promise<Option<U>>): OptionAsync<U> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.andThenAsync(f))
+    );
+  }
 }

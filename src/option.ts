@@ -361,6 +361,31 @@ class OptionType<T> {
    }
 
    /**
+    * Returns `None` if the Option is `None`, otherwise returns `optb`.
+    *
+    * ```
+    * const x = Some(10);
+    * const xand = x.and(Some(1));
+    * assert.equal(xand.unwrap(), 1);
+    *
+    * const x: Option<number> = None;
+    * const xand = x.and(Some(1));
+    * assert.equal(xand.isNone(), true);
+    *
+    * const x = Some(10);
+    * const xand = x.and(None);
+    * assert.equal(xand.isNone(), true);
+    * ```
+    */
+   andAsync<U>(this: Option<T>, optb: OptionAsync<U>): OptionAsync<U> {
+      if (this[T]) {
+         return optb;
+      }
+      
+      return new OptionTypeAsync(Promise.resolve(this as any));
+   }
+
+   /**
     * Returns `None` if the option is `None`, otherwise calls `f` with the
     * `Some` value and returns the result.
     *
@@ -380,6 +405,32 @@ class OptionType<T> {
     */
    andThen<U>(this: Option<T>, f: (val: T) => Option<U>): Option<U> {
       return this[T] ? f(this[Val]) : None;
+   }
+
+   /**
+    * Returns `None` if the option is `None`, otherwise calls `f` with the
+    * `Some` value and returns the result.
+    *
+    * ```
+    * const x = Some(10);
+    * const xand = x.andThen((n) => n + 1);
+    * assert.equal(xand.unwrap(), 11);
+    *
+    * const x: Option<number> = None;
+    * const xand = x.andThen((n) => n + 1);
+    * assert.equal(xand.isNone(), true);
+    *
+    * const x = Some(10);
+    * const xand = x.andThen(() => None);
+    * assert.equal(xand.isNone(), true);
+    * ```
+    */
+   andThenAsync<U>(this: Option<T>, f: (val: T) => Promise<Option<U>>): OptionAsync<U> {
+      if (this[T]) {
+         return new OptionTypeAsync(f(this[Val]));
+      }
+
+      return new OptionTypeAsync(Promise.resolve(this as any));
    }
 
    /**
