@@ -68,4 +68,87 @@ export class OptionTypeAsync<T> {
     return this.then((opt) => opt.isNone());
   }
 
+  /**
+   * Calls `f` with the contained `Some` value, converting `Some` to `None` if
+   * the filter returns false.
+   *
+   * For more advanced filtering, consider `match`.
+   *
+   * ```
+   * const x = Some(1);
+   * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
+   *
+   * const x = Some(10);
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   * ```
+   */
+  filter(this: OptionAsync<T>, f: (val: T) => boolean): OptionAsync<T> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.filter(f))
+    );
+  }
+
+  /**
+   * Calls `f` with the contained `Some` value, converting `Some` to `None` if
+   * the filter returns false.
+   *
+   * For more advanced filtering, consider `match`.
+   *
+   * ```
+   * const x = Some(1);
+   * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
+   *
+   * const x = Some(10);
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   * ```
+   */
+  filterAsync(this: OptionAsync<T>, f: (val: T) => Promise<boolean>): OptionAsync<T> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.filterAsync(f))
+    );
+  }
+
+  /**
+   * Flatten a nested `Option<Option<T>>` to an `Option<T>`.
+   *
+   * ```
+   * type NestedOption = Option<Option<number>>;
+   *
+   * const x: NestedOption = Some(Some(1));
+   * assert.equal(x.flatten().unwrap(), 1);
+   *
+   * const x: NestedOption = Some(None);
+   * assert.equal(x.flatten().isNone(), true);
+   *
+   * const x: NestedOption = None;
+   * assert.equal(x.flatten().isNone(), true);
+   * ```
+   */
+  // flatten<U>(this: Option<Option<U>>): Option<U> {
+  //   return this[T] ? this[Val] : None;
+  // }
+
+  /**
+   * Returns the contained `Some` value and throws `Error(msg)` if `None`.
+   *
+   * To avoid throwing, consider `Is`, `unwrapOr`, `unwrapOrElse` or
+   * `match` to handle the `None` case.
+   *
+   * ```
+   * const x = Some(1);
+   * assert.equal(x.expect("Is empty"), 1);
+   *
+   * const x: Option<number> = None;
+   * const y = x.expect("Is empty"); // throws
+   * ```
+   */
+  async expect(this: OptionAsync<T>, msg: string): Promise<T> {
+    return this.then((opt) => opt.expect(msg));
+  }
 }
