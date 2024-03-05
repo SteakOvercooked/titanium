@@ -447,6 +447,25 @@ class OptionType<T> {
       return this[T] ? new OptionType(f(this[Val]), true) : None;
    }
 
+
+   /**
+    * Maps an `Option<T>` to `Option<U>` by applying a function to the `Some`
+    * value.
+    *
+    * ```
+    * const x = Some(10);
+    * const xmap = x.map((n) => `number ${n}`);
+    * assert.equal(xmap.unwrap(), "number 10");
+    * ```
+    */
+   mapAsync<U>(this: Option<T>, f: (val: T) => Promise<U>): OptionAsync<U> {
+      if (!this[T]) {
+         return new OptionTypeAsync(Promise.resolve(None));
+      }
+      
+      return new OptionTypeAsync(f(this[Val]).then((val) => Some(val)));
+   }
+
    /**
     * Returns the provided default if `None`, otherwise calls `f` with the
     * `Some` value and returns the result.
@@ -466,6 +485,31 @@ class OptionType<T> {
     */
    mapOr<U>(this: Option<T>, def: U, f: (val: T) => U): U {
       return this[T] ? f(this[Val]) : def;
+   }
+
+   /**
+    * Returns the provided default if `None`, otherwise calls `f` with the
+    * `Some` value and returns the result.
+    *
+    * The provided default is eagerly evaluated. If you are passing the result
+    * of a function call, consider `mapOrElse`, which is lazily evaluated.
+    *
+    * ```
+    * const x = Some(10);
+    * const xmap = x.mapOr(1, (n) => n + 1);
+    * assert.equal(xmap.unwrap(), 11);
+    *
+    * const x: Option<number> = None;
+    * const xmap = x.mapOr(1, (n) => n + 1);
+    * assert.equal(xmap.unwrap(), 1);
+    * ```
+    */
+   mapAsyncOr<U>(this: Option<T>, def: U, f: (val: T) => Promise<U>): Promise<U> {
+      if (!this[T]) {
+         return Promise.resolve(def);
+      }
+      
+      return f(this[Val]);
    }
 
    /**

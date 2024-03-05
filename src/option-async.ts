@@ -393,4 +393,78 @@ export class OptionTypeAsync<T> {
       this.then((opt) => opt.andThenAsync(f))
     );
   }
+
+  /**
+   * Maps an `Option<T>` to `Option<U>` by applying a function to the `Some`
+   * value.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.map((n) => `number ${n}`);
+   * assert.equal(xmap.unwrap(), "number 10");
+   * ```
+   */
+  map<U>(this: OptionAsync<T>, f: (val: T) => U): OptionAsync<U> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.map(f))
+    );
+  }
+
+  /**
+   * Maps an `Option<T>` to `Option<U>` by applying a function to the `Some`
+   * value.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.map((n) => `number ${n}`);
+   * assert.equal(xmap.unwrap(), "number 10");
+   * ```
+   */
+  mapAsync<U>(this: OptionAsync<T>, f: (val: T) => Promise<U>): OptionAsync<U> {
+    return new OptionTypeAsync(
+      this.then((opt) => opt.mapAsync(f))
+    );
+  }
+
+  /**
+   * Returns the provided default if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  async mapOr<U>(this: OptionAsync<T>, def: U, f: (val: T) => U): Promise<U> {
+    return this.then((opt) => opt.mapOr(def, f));
+  }
+
+    /**
+   * Returns the provided default if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  async mapAsyncOr<U>(this: OptionAsync<T>, def: U, f: (val: T) => Promise<U>): Promise<U> {
+    return this.then((opt) => opt.mapAsyncOr(def, f));
+  }
 }
