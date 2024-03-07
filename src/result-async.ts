@@ -204,27 +204,6 @@ export class ResultTypeAsync<T, E> {
   }
 
   /**
-   * Flatten a nested `Result<Result<T, E>, F>` to a `Result<T, E | F>`.
-   *
-   * ```
-   * type NestedResult = Result<Result<string, number>, boolean>;
-   *
-   * const x: NestedResult = Ok(Ok(1));
-   * assert.equal(x.flatten().unwrap(), 1);
-   *
-   * const x: NestedResult = Ok(Err(1));
-   * assert.equal(x.flatten().unwrapErr(), 1);
-   *
-   * const x: NestedResult = Err(false);
-   * assert.equal(x.flatten().unwrapErr(), false);
-   * ```
-   */
-  // flatten<U, F>(this: ResultAsync<Result<U, F>, E>): Result<U, E | F> {
-    
-  //   return this[T] ? (this[Val] as Result<U, F>) : (this as Err<E>);
-  // }
-
-  /**
    * Returns a `Promise` that resolves with `T` (if `Ok`), otherwise throws `Error` with
    * the message including passed `msg` and the content of the `Err`.
    *
