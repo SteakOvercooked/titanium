@@ -743,11 +743,7 @@ class ResultType<T, E> {
     * ```
     */
    mapAsyncOrElseAsync<U>(this: Result<T, E>, def: (err: E) => Promise<U>, f: (val: T) => Promise<U>): Promise<U> {
-      if (this[T]) {
-         return f(this[Val] as T);
-      }
-
-      return def(this[Val] as E);
+      return this[T] ? f(this[Val] as T) : def(this[Val] as E);
    }
 
    /**

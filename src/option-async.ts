@@ -447,7 +447,7 @@ export class OptionTypeAsync<T> {
     return this.then((opt) => opt.mapOr(def, f));
   }
 
-    /**
+  /**
    * Returns the provided default if `None`, otherwise calls `f` with the
    * `Some` value and returns the result.
    *
@@ -466,5 +466,89 @@ export class OptionTypeAsync<T> {
    */
   async mapAsyncOr<U>(this: OptionAsync<T>, def: U, f: (val: T) => Promise<U>): Promise<U> {
     return this.then((opt) => opt.mapAsyncOr(def, f));
+  }
+
+  /**
+   * Returns the provided default if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  async mapOrElse<U>(this: OptionAsync<T>, def: () => U, f: (val: T) => U): Promise<U> {
+    return this.then((opt) => opt.mapOrElse(def, f));
+  }
+
+  /**
+   * Returns the provided default if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  async mapAsyncOrElse<U>(this: OptionAsync<T>, def: () => U, f: (val: T) => Promise<U>): Promise<U> {
+    return this.then((opt) => opt.mapAsyncOrElse(def, f));
+  }
+
+  /**
+   * Returns the provided default if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  async mapOrElseAsync<U>(this: OptionAsync<T>, def: () => Promise<U>, f: (val: T) => U): Promise<U> {
+    return this.then((opt) => opt.mapOrElseAsync(def, f));
+  }
+
+    /**
+   * Returns the provided default if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  async mapAsyncOrElseAsync<U>(this: OptionAsync<T>, def: () => Promise<U>, f: (val: T) => Promise<U>): Promise<U> {
+    return this.then((opt) => opt.mapAsyncOrElseAsync(def, f));
   }
 }
