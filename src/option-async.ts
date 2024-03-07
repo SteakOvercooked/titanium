@@ -1,5 +1,6 @@
 import { Prom, FalseyValues } from "./common";
 import { Option } from "./option";
+import { ResultAsync, ResultTypeAsync } from "./result-async";
 
 export type OptionAsync<T> = OptionTypeAsync<T>;
 
@@ -531,7 +532,7 @@ export class OptionTypeAsync<T> {
     return this.then((opt) => opt.mapOrElseAsync(def, f));
   }
 
-    /**
+  /**
    * Returns the provided default if `None`, otherwise calls `f` with the
    * `Some` value and returns the result.
    *
@@ -550,5 +551,71 @@ export class OptionTypeAsync<T> {
    */
   async mapAsyncOrElseAsync<U>(this: OptionAsync<T>, def: () => Promise<U>, f: (val: T) => Promise<U>): Promise<U> {
     return this.then((opt) => opt.mapAsyncOrElseAsync(def, f));
+  }
+
+  /**
+   * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
+   * `Ok(v)` and `None` to `Err(err)`.
+   *
+   * ```
+   * const x = Some(10);
+   * const res = x.okOr("Is empty");
+   * assert.equal(x.isOk(), true);
+   * assert.equal(x.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const res = x.okOr("Is empty");
+   * assert.equal(x.isErr(), true);
+   * assert.equal(x.unwrap_err(), "Is empty");
+   * ```
+   */
+  okOr<E>(this: OptionAsync<T>, err: E): ResultAsync<T, E> {
+    return new ResultTypeAsync(
+      this.then((opt) => opt.okOr(err))
+    );
+  }
+
+  /**
+   * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
+   * `Ok(v)` and `None` to `Err(f())`.
+   *
+   * ```
+   * const x = Some(10);
+   * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+   * assert.equal(x.isOk(), true);
+   * assert.equal(x.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+   * assert.equal(x.isErr(), true);
+   * assert.equal(x.unwrap_err(), "Is empty");
+   * ```
+   */
+  okOrElse<E>(this: OptionAsync<T>, f: () => E): ResultAsync<T, E> {
+    return new ResultTypeAsync(
+      this.then((opt) => opt.okOrElse(f))
+    );
+  }
+
+    /**
+   * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
+   * `Ok(v)` and `None` to `Err(f())`.
+   *
+   * ```
+   * const x = Some(10);
+   * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+   * assert.equal(x.isOk(), true);
+   * assert.equal(x.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+   * assert.equal(x.isErr(), true);
+   * assert.equal(x.unwrap_err(), "Is empty");
+   * ```
+   */
+  okOrElseAsync<E>(this: OptionAsync<T>, f: () => Promise<E>): ResultAsync<T, E> {
+    return new ResultTypeAsync(
+      this.then((opt) => opt.okOrElseAsync(f))
+    );
   }
 }

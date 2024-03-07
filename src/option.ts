@@ -1,6 +1,7 @@
 import { T, Val, EmptyArray, IterType, FalseyValues, isTruthy } from "./common";
 import { OptionAsync, OptionTypeAsync } from "./option-async";
 import { Result, Ok, Err } from "./result";
+import { ResultAsync, ResultTypeAsync } from "./result-async";
 
 export type Some<T> = OptionType<T> & { [T]: true };
 export type None = OptionType<never> & { [T]: false };
@@ -626,6 +627,32 @@ class OptionType<T> {
     */
    okOrElse<E>(this: Option<T>, f: () => E): Result<T, E> {
       return this[T] ? Ok(this[Val]) : Err(f());
+   }
+
+   /**
+    * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
+    * `Ok(v)` and `None` to `Err(f())`.
+    *
+    * ```
+    * const x = Some(10);
+    * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+    * assert.equal(x.isOk(), true);
+    * assert.equal(x.unwrap(), 10);
+    *
+    * const x: Option<number> = None;
+    * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+    * assert.equal(x.isErr(), true);
+    * assert.equal(x.unwrap_err(), "Is empty");
+    * ```
+    */
+   okOrElseAsync<E>(this: Option<T>, f: () => Promise<E>): ResultAsync<T, E> {
+      if (this[T]) {
+         return new ResultTypeAsync(Promise.resolve(Ok(this[Val])));
+      }
+
+      return new ResultTypeAsync(
+         f().then((err) => Err(err))
+      );
    }
 
    /**
