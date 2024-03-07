@@ -618,4 +618,20 @@ export class OptionTypeAsync<T> {
       this.then((opt) => opt.okOrElseAsync(f))
     );
   }
+
+  /**
+   * Calls the provided closure with the contained value (if `Some`), otherwise does nothing.
+   * 
+   * ```
+   * // Prints the contained value.
+   * Some(10).inspect((n) => console.log(n));
+   * 
+   * // Doesn't produce any output.
+   * None.inspect((n) => console.log(n));
+   * ```
+   */
+  inspect(this: OptionAsync<T>, f: (val: T) => void): OptionAsync<T> {
+    this.then((opt) => opt.inspect(f));
+    return this;
+  }
 }
