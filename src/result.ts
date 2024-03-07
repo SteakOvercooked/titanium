@@ -1,5 +1,6 @@
 import { T, Val, EmptyArray, IterType, FalseyValues, isTruthy } from "./common";
 import { Option, Some, None } from "./option";
+import { OptionAsync, OptionTypeAsync } from "./option-async";
 import { ResultAsync, ResultTypeAsync } from "./result-async";
 
 export type Ok<T> = ResultType<T, never>;
@@ -180,6 +181,33 @@ class ResultType<T, E> {
     */
    filter(this: Result<T, E>, f: (val: T) => boolean): Option<T> {
       return this[T] && f(this[Val] as T) ? Some(this[Val] as T) : None;
+   }
+
+   /**
+    * Creates an `Option<T>` by calling `f` with the contained `Ok` value.
+    * Converts `Ok` to `Some` if the filter returns true, or `None` otherwise.
+    *
+    * For more advanced filtering, consider `match`.
+    *
+    * ```
+    * const x = Ok(1);
+    * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
+    *
+    * const x = Ok(10);
+    * assert.equal(x.filter((v) => v < 5).isNone(), true);
+    *
+    * const x = Err(1);
+    * assert.equal(x.filter((v) => v < 5).isNone(), true);
+    * ```
+    */
+   filterAsync(this: Result<T, E>, f: (val: T) => Promise<boolean>): OptionAsync<T> {
+      if (!this[T]) {
+         return new OptionTypeAsync(Promise.resolve(None));
+      }
+
+      return new OptionTypeAsync(
+         f(this[Val] as T).then((valid) => valid ? Some(this[Val] as T) : None)
+      );
    }
 
    /**

@@ -1,4 +1,5 @@
 import { Prom, FalseyValues } from "./common";
+import { OptionAsync, OptionTypeAsync } from "./option-async";
 import { Result } from "./result";
 
 export type ResultAsync<T, E> = ResultTypeAsync<T, E>;
@@ -173,9 +174,34 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(x.filter((v) => v < 5).isNone(), true);
    * ```
    */
-  // filter(this: ResultAsync<T, E>, f: (val: T) => boolean): Option<T> {
-  //   return this[T] && f(this[Val] as T) ? Some(this[Val] as T) : None;
-  // }
+  filter(this: ResultAsync<T, E>, f: (val: T) => boolean): OptionAsync<T> {
+    return new OptionTypeAsync(
+      this.then((res) => res.filter(f))
+    );
+  }
+
+    /**
+   * Creates an `Option<T>` by calling `f` with the contained `Ok` value.
+   * Converts `Ok` to `Some` if the filter returns true, or `None` otherwise.
+   *
+   * For more advanced filtering, consider `match`.
+   *
+   * ```
+   * const x = Ok(1);
+   * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
+   *
+   * const x = Ok(10);
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   *
+   * const x = Err(1);
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   * ```
+   */
+  filterAsync(this: ResultAsync<T, E>, f: (val: T) => Promise<boolean>): OptionAsync<T> {
+    return new OptionTypeAsync(
+      this.then((res) => res.filterAsync(f))
+    );
+  }
 
   /**
    * Flatten a nested `Result<Result<T, E>, F>` to a `Result<T, E | F>`.
@@ -711,9 +737,11 @@ export class ResultTypeAsync<T, E> {
    * const y = x.unwrap(); // throws
    * ```
    */
-  // ok(this: Result<T, E>): Option<T> {
-  //   return this[T] ? Some(this[Val] as T) : None;
-  // }
+  ok(this: ResultAsync<T, E>): OptionAsync<T> {
+    return new OptionTypeAsync(
+      this.then((res) => res.ok())
+    );
+  }
 
   /**
    * Calls the provided closure with the contained Ok value otherwise does nothing.
