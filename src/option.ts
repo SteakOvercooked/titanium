@@ -10,669 +10,721 @@ export type Option<T> = OptionType<T>;
 type From<T> = Exclude<T, Error | FalseyValues>;
 
 type OptionTypes<O> = {
-   [K in keyof O]: O[K] extends Option<infer T> ? T : never;
+  [K in keyof O]: O[K] extends Option<infer T> ? T : never;
 };
 
 class OptionType<T> {
-   readonly [T]: boolean;
-   readonly [Val]: T;
+  readonly [T]: boolean;
+  readonly [Val]: T;
 
-   constructor(val: T, some: boolean) {
-      this[T] = some;
-      this[Val] = val;
-   }
+  constructor(val: T, some: boolean) {
+    this[T] = some;
+    this[Val] = val;
+  }
 
-   [Symbol.iterator](this: Option<T>): IterType<T> {
-      return this[T]
-         ? (this[Val] as any)[Symbol.iterator]()
-         : EmptyArray[Symbol.iterator]();
-   }
+  [Symbol.iterator](this: Option<T>): IterType<T> {
+    return this[T]
+      ? (this[Val] as any)[Symbol.iterator]()
+      : EmptyArray[Symbol.iterator]();
+  }
 
-   /**
-    * Return the contained `T`, or `none` if the option is `None`. The `none`
-    * value must be falsey and defaults to `undefined`.
-    *
-    * ```
-    * const x: Option<number> = Some(1);
-    * assert.equal(x.into(), 1);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.into(), undefined);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.into(null), null);
-    * ```
-    */
-   into(this: Option<T>): T | undefined;
-   into<U extends FalseyValues>(this: Option<T>, none: U): T | U;
-   into(this: Option<T>, none?: FalseyValues): T | FalseyValues {
-      return this[T] ? this[Val] : none;
-   }
+  /**
+   * Return the contained `T`, or `none` if the option is `None`. The `none`
+   * value must be falsey and defaults to `undefined`.
+   *
+   * ```
+   * const x: Option<number> = Some(1);
+   * assert.equal(x.into(), 1);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.into(), undefined);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.into(null), null);
+   * ```
+   */
+  into(this: Option<T>): T | undefined;
+  into<U extends FalseyValues>(this: Option<T>, none: U): T | U;
+  into(this: Option<T>, none?: FalseyValues): T | FalseyValues {
+    return this[T] ? this[Val] : none;
+  }
 
-   /**
-    * Returns true if the Option is `Some` and acts as a type guard.
-    *
-    * ```
-    * const x = Some(10);
-    * assert.equal(x.Is(), true);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.Is(), false);
-    * ```
-    */
-   isSome(this: Option<T>): this is Some<T> {
-      return this[T];
-   }
+  /**
+   * Returns true if the Option is `Some` and acts as a type guard.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.Is(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.Is(), false);
+   * ```
+   */
+  isSome(this: Option<T>): this is Some<T> {
+    return this[T];
+  }
 
-   /**
-    * Returns true if the Option is `None` and acts as a type guard.
-    *
-    * ```
-    * const x = Some(10);
-    * assert.equal(x.isNone(), false);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.isNone(), true);
-    * ```
-    */
-   isNone(this: Option<T>): this is None {
-      return !this[T];
-   }
+  /**
+   * Returns true if the Option is `Some` and acts as a type guard.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.Is(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.Is(), false);
+   * ```
+   */
+  isSomeAnd(this: Option<T>, f: (val: T) => boolean): this is Some<T> {
+    return this[T] && f(this[Val]);
+  }
 
-   /**
-    * Calls `f` with the contained `Some` value, converting `Some` to `None` if
-    * the filter returns false.
-    *
-    * For more advanced filtering, consider `match`.
-    *
-    * ```
-    * const x = Some(1);
-    * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
-    *
-    * const x = Some(10);
-    * assert.equal(x.filter((v) => v < 5).isNone(), true);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.filter((v) => v < 5).isNone(), true);
-    * ```
-    */
-   filter(this: Option<T>, f: (val: T) => boolean): Option<T> {
-      return this[T] && f(this[Val]) ? this : None;
-   }
+  /**
+   * Returns true if the Option is `Some` and acts as a type guard.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.Is(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.Is(), false);
+   * ```
+   */
+  async isSomeAndAsync(
+    this: Option<T>,
+    f: (val: T) => Promise<boolean>
+  ): Promise<boolean> {
+    return this[T] && f(this[Val]);
+  }
 
-   /**
-    * Calls `f` with the contained `Some` value, converting `Some` to `None` if
-    * the filter returns false.
-    *
-    * For more advanced filtering, consider `match`.
-    *
-    * ```
-    * const x = Some(1);
-    * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
-    *
-    * const x = Some(10);
-    * assert.equal(x.filter((v) => v < 5).isNone(), true);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.filter((v) => v < 5).isNone(), true);
-    * ```
-    */
-   filterAsync(this: Option<T>, f: (val: T) => Promise<boolean>): OptionAsync<T> {
-      if (!this[T]) {
-         return new OptionTypeAsync(Promise.resolve(this));
-      }
+  /**
+   * Returns true if the Option is `None` and acts as a type guard.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.isNone(), false);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.isNone(), true);
+   * ```
+   */
+  isNone(this: Option<T>): this is None {
+    return !this[T];
+  }
 
-      return new OptionTypeAsync(
-         f(this[Val]).then((valid) => valid ? this : None)
-      );
-   }
+  /**
+   * Calls `f` with the contained `Some` value, converting `Some` to `None` if
+   * the filter returns false.
+   *
+   * For more advanced filtering, consider `match`.
+   *
+   * ```
+   * const x = Some(1);
+   * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
+   *
+   * const x = Some(10);
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   * ```
+   */
+  filter(this: Option<T>, f: (val: T) => boolean): Option<T> {
+    return this[T] && f(this[Val]) ? this : None;
+  }
 
-   /**
-    * Flatten a nested `Option<Option<T>>` to an `Option<T>`.
-    *
-    * ```
-    * type NestedOption = Option<Option<number>>;
-    *
-    * const x: NestedOption = Some(Some(1));
-    * assert.equal(x.flatten().unwrap(), 1);
-    *
-    * const x: NestedOption = Some(None);
-    * assert.equal(x.flatten().isNone(), true);
-    *
-    * const x: NestedOption = None;
-    * assert.equal(x.flatten().isNone(), true);
-    * ```
-    */
-   flatten<U>(this: Option<Option<U>>): Option<U> {
-      return this[T] ? this[Val] : None;
-   }
+  /**
+   * Calls `f` with the contained `Some` value, converting `Some` to `None` if
+   * the filter returns false.
+   *
+   * For more advanced filtering, consider `match`.
+   *
+   * ```
+   * const x = Some(1);
+   * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
+   *
+   * const x = Some(10);
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.filter((v) => v < 5).isNone(), true);
+   * ```
+   */
+  filterAsync(
+    this: Option<T>,
+    f: (val: T) => Promise<boolean>
+  ): OptionAsync<T> {
+    if (!this[T]) {
+      return new OptionTypeAsync(Promise.resolve(this));
+    }
 
-   /**
-    * Returns the contained `Some` value and throws `Error(msg)` if `None`.
-    *
-    * To avoid throwing, consider `Is`, `unwrapOr`, `unwrapOrElse` or
-    * `match` to handle the `None` case.
-    *
-    * ```
-    * const x = Some(1);
-    * assert.equal(x.expect("Is empty"), 1);
-    *
-    * const x: Option<number> = None;
-    * const y = x.expect("Is empty"); // throws
-    * ```
-    */
-   expect(this: Option<T>, msg: string): T {
-      if (this[T]) {
-         return this[Val];
-      }
+    return new OptionTypeAsync(
+      f(this[Val]).then((valid) => (valid ? this : None))
+    );
+  }
 
-      throw new Error(msg);
-   }
+  /**
+   * Flatten a nested `Option<Option<T>>` to an `Option<T>`.
+   *
+   * ```
+   * type NestedOption = Option<Option<number>>;
+   *
+   * const x: NestedOption = Some(Some(1));
+   * assert.equal(x.flatten().unwrap(), 1);
+   *
+   * const x: NestedOption = Some(None);
+   * assert.equal(x.flatten().isNone(), true);
+   *
+   * const x: NestedOption = None;
+   * assert.equal(x.flatten().isNone(), true);
+   * ```
+   */
+  flatten<U>(this: Option<Option<U>>): Option<U> {
+    return this[T] ? this[Val] : None;
+  }
 
-   /**
-    * Returns the contained `Some` value and throws if `None`.
-    *
-    * To avoid throwing, consider `isSome`, `unwrapOr`, `unwrapOrElse` or
-    * `match` to handle the `None` case. To throw a more informative error use
-    * `expect`.
-    *
-    * ```
-    * const x = Some(1);
-    * assert.equal(x.unwrap(), 1);
-    *
-    * const x: Option<number> = None;
-    * const y = x.unwrap(); // throws "Error: expected Some, got None"
-    * ```
-    */
-   unwrap(this: Option<T>): T {
-      if (this[T]) {
-         return this[Val];
-      }
-
-      throw new Error("expected Some, got None");
-   }
-
-   /**
-    * Returns the contained `Some` value or a provided default.
-    *
-    * The provided default is eagerly evaluated. If you are passing the result
-    * of a function call, consider `unwrapOrElse`, which is lazily evaluated.
-    *
-    * ```
-    * const x = Some(10);
-    * assert.equal(x.unwrapOr(1), 10);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.unwrapOr(1), 1);
-    * ```
-    */
-   unwrapOr(this: Option<T>, def: T): T {
-      return this[T] ? this[Val] : def;
-   }
-
-   /**
-    * Returns the contained `Some` value or computes it from a function.
-    *
-    * ```
-    * const x = Some(10);
-    * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
-    * ```
-    */
-   unwrapOrElse(this: Option<T>, f: () => T): T {
-      return this[T] ? this[Val] : f();
-   }
-
-   /**
-    * Returns the contained `Some` value or computes it from a function.
-    *
-    * ```
-    * const x = Some(10);
-    * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
-    * ```
-    */
-   async unwrapOrElseAsync(this: Option<T>, f: () => Promise<T>): Promise<T> {
-      return this[T] ? this[Val] : f();
-   }
-
-   /**
-    * Returns the contained `Some` value or undefined if `None`.
-    *
-    * Most problems are better solved using one of the other `unwrap_` methods.
-    * This method should only be used when you are certain that you need it.
-    *
-    * ```
-    * const x = Some(10);
-    * assert.equal(x.unwrapUnchecked(), 10);
-    *
-    * const x: Option<number> = None;
-    * assert.equal(x.unwrapUnchecked(), undefined);
-    * ```
-    */
-   unwrapUnchecked(this: Option<T>): T | undefined {
+  /**
+   * Returns the contained `Some` value and throws `Error(msg)` if `None`.
+   *
+   * To avoid throwing, consider `Is`, `unwrapOr`, `unwrapOrElse` or
+   * `match` to handle the `None` case.
+   *
+   * ```
+   * const x = Some(1);
+   * assert.equal(x.expect("Is empty"), 1);
+   *
+   * const x: Option<number> = None;
+   * const y = x.expect("Is empty"); // throws
+   * ```
+   */
+  expect(this: Option<T>, msg: string): T {
+    if (this[T]) {
       return this[Val];
-   }
+    }
 
-   /**
-    * Returns the Option if it is `Some`, otherwise returns `optb`.
-    *
-    * `optb` is eagerly evaluated. If you are passing the result of a function
-    * call, consider `orElse`, which is lazily evaluated.
-    *
-    * ```
-    * const x = Some(10);
-    * const xor = x.or(Some(1));
-    * assert.equal(xor.unwrap(), 10);
-    *
-    * const x: Option<number> = None;
-    * const xor = x.or(Some(1));
-    * assert.equal(xor.unwrap(), 1);
-    * ```
-    */
-   or(this: Option<T>, optb: Option<T>): Option<T> {
-      return this[T] ? this : optb;
-   }
+    throw new Error(msg);
+  }
 
-   /**
-    * Returns the Option if it is `Some`, otherwise returns `optb`.
-    *
-    * `optb` is eagerly evaluated. If you are passing the result of a function
-    * call, consider `orElse`, which is lazily evaluated.
-    *
-    * ```
-    * const x = Some(10);
-    * const xor = x.or(Some(1));
-    * assert.equal(xor.unwrap(), 10);
-    *
-    * const x: Option<number> = None;
-    * const xor = x.or(Some(1));
-    * assert.equal(xor.unwrap(), 1);
-    * ```
-    */
-   orAsync(this: Option<T>, optb: OptionAsync<T>): OptionAsync<T> {
-      if (!this[T]) {
-         return optb;
-      }
+  /**
+   * Returns the contained `Some` value and throws if `None`.
+   *
+   * To avoid throwing, consider `isSome`, `unwrapOr`, `unwrapOrElse` or
+   * `match` to handle the `None` case. To throw a more informative error use
+   * `expect`.
+   *
+   * ```
+   * const x = Some(1);
+   * assert.equal(x.unwrap(), 1);
+   *
+   * const x: Option<number> = None;
+   * const y = x.unwrap(); // throws "Error: expected Some, got None"
+   * ```
+   */
+  unwrap(this: Option<T>): T {
+    if (this[T]) {
+      return this[Val];
+    }
 
-      return new OptionTypeAsync(Promise.resolve(this));
-   }
+    throw new Error("expected Some, got None");
+  }
 
-   /**
-    * Returns the Option if it is `Some`, otherwise returns the value of `f()`.
-    *
-    * ```
-    * const x = Some(10);
-    * const xor = x.orElse(() => Some(1));
-    * assert.equal(xor.unwrap(), 10);
-    *
-    * const x: Option<number> = None;
-    * const xor = x.orElse(() => Some(1));
-    * assert.equal(xor.unwrap(), 1);
-    * ```
-    */
-   orElse(this: Option<T>, f: () => Option<T>): Option<T> {
-      return this[T] ? this : f();
-   }
+  /**
+   * Returns the contained `Some` value or a provided default.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `unwrapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.unwrapOr(1), 10);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.unwrapOr(1), 1);
+   * ```
+   */
+  unwrapOr(this: Option<T>, def: T): T {
+    return this[T] ? this[Val] : def;
+  }
 
-   /**
-    * Returns the Option if it is `Some`, otherwise returns the value of `f()`.
-    *
-    * ```
-    * const x = Some(10);
-    * const xor = x.orElse(() => Some(1));
-    * assert.equal(xor.unwrap(), 10);
-    *
-    * const x: Option<number> = None;
-    * const xor = x.orElse(() => Some(1));
-    * assert.equal(xor.unwrap(), 1);
-    * ```
-    */
-   orElseAsync(this: Option<T>, f: () => Promise<Option<T>>): OptionAsync<T> {
-      if (!this[T]) {
-         return new OptionTypeAsync(f());
-      }
+  /**
+   * Returns the contained `Some` value or computes it from a function.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
+   * ```
+   */
+  unwrapOrElse(this: Option<T>, f: () => T): T {
+    return this[T] ? this[Val] : f();
+  }
 
-      return new OptionTypeAsync(Promise.resolve(this));
-   }
+  /**
+   * Returns the contained `Some` value or computes it from a function.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
+   * ```
+   */
+  async unwrapOrElseAsync(this: Option<T>, f: () => Promise<T>): Promise<T> {
+    return this[T] ? this[Val] : f();
+  }
 
-   /**
-    * Returns `None` if the Option is `None`, otherwise returns `optb`.
-    *
-    * ```
-    * const x = Some(10);
-    * const xand = x.and(Some(1));
-    * assert.equal(xand.unwrap(), 1);
-    *
-    * const x: Option<number> = None;
-    * const xand = x.and(Some(1));
-    * assert.equal(xand.isNone(), true);
-    *
-    * const x = Some(10);
-    * const xand = x.and(None);
-    * assert.equal(xand.isNone(), true);
-    * ```
-    */
-   and<U>(this: Option<T>, optb: Option<U>): Option<U> {
-      return this[T] ? optb : None;
-   }
+  /**
+   * Returns the contained `Some` value or undefined if `None`.
+   *
+   * Most problems are better solved using one of the other `unwrap_` methods.
+   * This method should only be used when you are certain that you need it.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.unwrapUnchecked(), 10);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.unwrapUnchecked(), undefined);
+   * ```
+   */
+  unwrapUnchecked(this: Option<T>): T | undefined {
+    return this[Val];
+  }
 
-   /**
-    * Returns `None` if the Option is `None`, otherwise returns `optb`.
-    *
-    * ```
-    * const x = Some(10);
-    * const xand = x.and(Some(1));
-    * assert.equal(xand.unwrap(), 1);
-    *
-    * const x: Option<number> = None;
-    * const xand = x.and(Some(1));
-    * assert.equal(xand.isNone(), true);
-    *
-    * const x = Some(10);
-    * const xand = x.and(None);
-    * assert.equal(xand.isNone(), true);
-    * ```
-    */
-   andAsync<U>(this: Option<T>, optb: OptionAsync<U>): OptionAsync<U> {
-      if (this[T]) {
-         return optb;
-      }
-      
-      return new OptionTypeAsync(Promise.resolve(this as any));
-   }
+  /**
+   * Returns the Option if it is `Some`, otherwise returns `optb`.
+   *
+   * `optb` is eagerly evaluated. If you are passing the result of a function
+   * call, consider `orElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xor = x.or(Some(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const xor = x.or(Some(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  or(this: Option<T>, optb: Option<T>): Option<T> {
+    return this[T] ? this : optb;
+  }
 
-   /**
-    * Returns `None` if the option is `None`, otherwise calls `f` with the
-    * `Some` value and returns the result.
-    *
-    * ```
-    * const x = Some(10);
-    * const xand = x.andThen((n) => n + 1);
-    * assert.equal(xand.unwrap(), 11);
-    *
-    * const x: Option<number> = None;
-    * const xand = x.andThen((n) => n + 1);
-    * assert.equal(xand.isNone(), true);
-    *
-    * const x = Some(10);
-    * const xand = x.andThen(() => None);
-    * assert.equal(xand.isNone(), true);
-    * ```
-    */
-   andThen<U>(this: Option<T>, f: (val: T) => Option<U>): Option<U> {
-      return this[T] ? f(this[Val]) : None;
-   }
+  /**
+   * Returns the Option if it is `Some`, otherwise returns `optb`.
+   *
+   * `optb` is eagerly evaluated. If you are passing the result of a function
+   * call, consider `orElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xor = x.or(Some(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const xor = x.or(Some(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  orAsync(this: Option<T>, optb: OptionAsync<T>): OptionAsync<T> {
+    if (!this[T]) {
+      return optb;
+    }
 
-   /**
-    * Returns `None` if the option is `None`, otherwise calls `f` with the
-    * `Some` value and returns the result.
-    *
-    * ```
-    * const x = Some(10);
-    * const xand = x.andThen((n) => n + 1);
-    * assert.equal(xand.unwrap(), 11);
-    *
-    * const x: Option<number> = None;
-    * const xand = x.andThen((n) => n + 1);
-    * assert.equal(xand.isNone(), true);
-    *
-    * const x = Some(10);
-    * const xand = x.andThen(() => None);
-    * assert.equal(xand.isNone(), true);
-    * ```
-    */
-   andThenAsync<U>(this: Option<T>, f: (val: T) => Promise<Option<U>>): OptionAsync<U> {
-      if (this[T]) {
-         return new OptionTypeAsync(f(this[Val]));
-      }
+    return new OptionTypeAsync(Promise.resolve(this));
+  }
 
-      return new OptionTypeAsync(Promise.resolve(this as any));
-   }
+  /**
+   * Returns the Option if it is `Some`, otherwise returns the value of `f()`.
+   *
+   * ```
+   * const x = Some(10);
+   * const xor = x.orElse(() => Some(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const xor = x.orElse(() => Some(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  orElse(this: Option<T>, f: () => Option<T>): Option<T> {
+    return this[T] ? this : f();
+  }
 
-   /**
-    * Maps an `Option<T>` to `Option<U>` by applying a function to the `Some`
-    * value.
-    *
-    * ```
-    * const x = Some(10);
-    * const xmap = x.map((n) => `number ${n}`);
-    * assert.equal(xmap.unwrap(), "number 10");
-    * ```
-    */
-   map<U>(this: Option<T>, f: (val: T) => U): Option<U> {
-      return this[T] ? new OptionType(f(this[Val]), true) : None;
-   }
+  /**
+   * Returns the Option if it is `Some`, otherwise returns the value of `f()`.
+   *
+   * ```
+   * const x = Some(10);
+   * const xor = x.orElse(() => Some(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const xor = x.orElse(() => Some(1));
+   * assert.equal(xor.unwrap(), 1);
+   * ```
+   */
+  orElseAsync(this: Option<T>, f: () => Promise<Option<T>>): OptionAsync<T> {
+    if (!this[T]) {
+      return new OptionTypeAsync(f());
+    }
 
+    return new OptionTypeAsync(Promise.resolve(this));
+  }
 
-   /**
-    * Maps an `Option<T>` to `Option<U>` by applying a function to the `Some`
-    * value.
-    *
-    * ```
-    * const x = Some(10);
-    * const xmap = x.map((n) => `number ${n}`);
-    * assert.equal(xmap.unwrap(), "number 10");
-    * ```
-    */
-   mapAsync<U>(this: Option<T>, f: (val: T) => Promise<U>): OptionAsync<U> {
-      if (!this[T]) {
-         return new OptionTypeAsync(Promise.resolve(None));
-      }
-      
-      return new OptionTypeAsync(f(this[Val]).then((val) => Some(val)));
-   }
+  /**
+   * Returns `None` if the Option is `None`, otherwise returns `optb`.
+   *
+   * ```
+   * const x = Some(10);
+   * const xand = x.and(Some(1));
+   * assert.equal(xand.unwrap(), 1);
+   *
+   * const x: Option<number> = None;
+   * const xand = x.and(Some(1));
+   * assert.equal(xand.isNone(), true);
+   *
+   * const x = Some(10);
+   * const xand = x.and(None);
+   * assert.equal(xand.isNone(), true);
+   * ```
+   */
+  and<U>(this: Option<T>, optb: Option<U>): Option<U> {
+    return this[T] ? optb : None;
+  }
 
-   /**
-    * Returns the provided default if `None`, otherwise calls `f` with the
-    * `Some` value and returns the result.
-    *
-    * The provided default is eagerly evaluated. If you are passing the result
-    * of a function call, consider `mapOrElse`, which is lazily evaluated.
-    *
-    * ```
-    * const x = Some(10);
-    * const xmap = x.mapOr(1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 11);
-    *
-    * const x: Option<number> = None;
-    * const xmap = x.mapOr(1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 1);
-    * ```
-    */
-   mapOr<U>(this: Option<T>, def: U, f: (val: T) => U): U {
-      return this[T] ? f(this[Val]) : def;
-   }
+  /**
+   * Returns `None` if the Option is `None`, otherwise returns `optb`.
+   *
+   * ```
+   * const x = Some(10);
+   * const xand = x.and(Some(1));
+   * assert.equal(xand.unwrap(), 1);
+   *
+   * const x: Option<number> = None;
+   * const xand = x.and(Some(1));
+   * assert.equal(xand.isNone(), true);
+   *
+   * const x = Some(10);
+   * const xand = x.and(None);
+   * assert.equal(xand.isNone(), true);
+   * ```
+   */
+  andAsync<U>(this: Option<T>, optb: OptionAsync<U>): OptionAsync<U> {
+    if (this[T]) {
+      return optb;
+    }
 
-   /**
-    * Returns the provided default if `None`, otherwise calls `f` with the
-    * `Some` value and returns the result.
-    *
-    * The provided default is eagerly evaluated. If you are passing the result
-    * of a function call, consider `mapOrElse`, which is lazily evaluated.
-    *
-    * ```
-    * const x = Some(10);
-    * const xmap = x.mapOr(1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 11);
-    *
-    * const x: Option<number> = None;
-    * const xmap = x.mapOr(1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 1);
-    * ```
-    */
-   mapAsyncOr<U>(this: Option<T>, def: U, f: (val: T) => Promise<U>): Promise<U> {
-      if (!this[T]) {
-         return Promise.resolve(def);
-      }
-      
-      return f(this[Val]);
-   }
+    return new OptionTypeAsync(Promise.resolve(this as any));
+  }
 
-   /**
-    * Computes a default return value if `None`, otherwise calls `f` with the
-    * `Some` value and returns the result.
-    *
-    * const x = Some(10);
-    * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 11);
-    *
-    * const x: Option<number> = None;
-    * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 2);
-    * ```
-    */
-   mapOrElse<U>(this: Option<T>, def: () => U, f: (val: T) => U): U {
-      return this[T] ? f(this[Val]) : def();
-   }
+  /**
+   * Returns `None` if the option is `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * ```
+   * const x = Some(10);
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.isNone(), true);
+   *
+   * const x = Some(10);
+   * const xand = x.andThen(() => None);
+   * assert.equal(xand.isNone(), true);
+   * ```
+   */
+  andThen<U>(this: Option<T>, f: (val: T) => Option<U>): Option<U> {
+    return this[T] ? f(this[Val]) : None;
+  }
 
-   /**
-    * Computes a default return value if `None`, otherwise calls `f` with the
-    * `Some` value and returns the result.
-    *
-    * const x = Some(10);
-    * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 11);
-    *
-    * const x: Option<number> = None;
-    * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 2);
-    * ```
-    */
-   mapAsyncOrElse<U>(this: Option<T>, def: () => U, f: (val: T) => Promise<U>): Promise<U> {
-      if (!this[T]) {
-         return Promise.resolve(def());
-      }
+  /**
+   * Returns `None` if the option is `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * ```
+   * const x = Some(10);
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xand = x.andThen((n) => n + 1);
+   * assert.equal(xand.isNone(), true);
+   *
+   * const x = Some(10);
+   * const xand = x.andThen(() => None);
+   * assert.equal(xand.isNone(), true);
+   * ```
+   */
+  andThenAsync<U>(
+    this: Option<T>,
+    f: (val: T) => Promise<Option<U>>
+  ): OptionAsync<U> {
+    if (this[T]) {
+      return new OptionTypeAsync(f(this[Val]));
+    }
 
-      return f(this[Val]);
-   }
+    return new OptionTypeAsync(Promise.resolve(this as any));
+  }
 
-   /**
-    * Computes a default return value if `None`, otherwise calls `f` with the
-    * `Some` value and returns the result.
-    *
-    * const x = Some(10);
-    * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 11);
-    *
-    * const x: Option<number> = None;
-    * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 2);
-    * ```
-    */
-   mapOrElseAsync<U>(this: Option<T>, def: () => Promise<U>, f: (val: T) => U): Promise<U> {
-      if (this[T]) {
-         return Promise.resolve(f(this[Val]));
-      }
+  /**
+   * Maps an `Option<T>` to `Option<U>` by applying a function to the `Some`
+   * value.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.map((n) => `number ${n}`);
+   * assert.equal(xmap.unwrap(), "number 10");
+   * ```
+   */
+  map<U>(this: Option<T>, f: (val: T) => U): Option<U> {
+    return this[T] ? new OptionType(f(this[Val]), true) : None;
+  }
 
-      return def();
-   }
+  /**
+   * Maps an `Option<T>` to `Option<U>` by applying a function to the `Some`
+   * value.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.map((n) => `number ${n}`);
+   * assert.equal(xmap.unwrap(), "number 10");
+   * ```
+   */
+  mapAsync<U>(this: Option<T>, f: (val: T) => Promise<U>): OptionAsync<U> {
+    if (!this[T]) {
+      return new OptionTypeAsync(Promise.resolve(None));
+    }
 
-   /**
-    * Computes a default return value if `None`, otherwise calls `f` with the
-    * `Some` value and returns the result.
-    *
-    * const x = Some(10);
-    * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 11);
-    *
-    * const x: Option<number> = None;
-    * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-    * assert.equal(xmap.unwrap(), 2);
-    * ```
-    */
-   mapAsyncOrElseAsync<U>(this: Option<T>, def: () => Promise<U>, f: (val: T) => Promise<U>): Promise<U> {
-      return this[T] ? f(this[Val]) : def();
-   }
+    return new OptionTypeAsync(f(this[Val]).then((val) => Some(val)));
+  }
 
-   /**
-    * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
-    * `Ok(v)` and `None` to `Err(err)`.
-    *
-    * ```
-    * const x = Some(10);
-    * const res = x.okOr("Is empty");
-    * assert.equal(x.isOk(), true);
-    * assert.equal(x.unwrap(), 10);
-    *
-    * const x: Option<number> = None;
-    * const res = x.okOr("Is empty");
-    * assert.equal(x.isErr(), true);
-    * assert.equal(x.unwrap_err(), "Is empty");
-    * ```
-    */
-   okOr<E>(this: Option<T>, err: E): Result<T, E> {
-      return this[T] ? Ok(this[Val]) : Err(err);
-   }
+  /**
+   * Returns the provided default if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  mapOr<U>(this: Option<T>, def: U, f: (val: T) => U): U {
+    return this[T] ? f(this[Val]) : def;
+  }
 
-   /**
-    * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
-    * `Ok(v)` and `None` to `Err(f())`.
-    *
-    * ```
-    * const x = Some(10);
-    * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
-    * assert.equal(x.isOk(), true);
-    * assert.equal(x.unwrap(), 10);
-    *
-    * const x: Option<number> = None;
-    * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
-    * assert.equal(x.isErr(), true);
-    * assert.equal(x.unwrap_err(), "Is empty");
-    * ```
-    */
-   okOrElse<E>(this: Option<T>, f: () => E): Result<T, E> {
-      return this[T] ? Ok(this[Val]) : Err(f());
-   }
+  /**
+   * Returns the provided default if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * The provided default is eagerly evaluated. If you are passing the result
+   * of a function call, consider `mapOrElse`, which is lazily evaluated.
+   *
+   * ```
+   * const x = Some(10);
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOr(1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 1);
+   * ```
+   */
+  mapAsyncOr<U>(
+    this: Option<T>,
+    def: U,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
+    if (!this[T]) {
+      return Promise.resolve(def);
+    }
 
-   /**
-    * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
-    * `Ok(v)` and `None` to `Err(f())`.
-    *
-    * ```
-    * const x = Some(10);
-    * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
-    * assert.equal(x.isOk(), true);
-    * assert.equal(x.unwrap(), 10);
-    *
-    * const x: Option<number> = None;
-    * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
-    * assert.equal(x.isErr(), true);
-    * assert.equal(x.unwrap_err(), "Is empty");
-    * ```
-    */
-   okOrElseAsync<E>(this: Option<T>, f: () => Promise<E>): ResultAsync<T, E> {
-      if (this[T]) {
-         return new ResultTypeAsync(Promise.resolve(Ok(this[Val])));
-      }
+    return f(this[Val]);
+  }
 
-      return new ResultTypeAsync(
-         f().then((err) => Err(err))
-      );
-   }
+  /**
+   * Computes a default return value if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * const x = Some(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 2);
+   * ```
+   */
+  mapOrElse<U>(this: Option<T>, def: () => U, f: (val: T) => U): U {
+    return this[T] ? f(this[Val]) : def();
+  }
 
-   /**
-    * Calls the provided closure with the contained value (if Some), otherwise does nothing.
-    * 
-    * ```
-    * // Prints the contained value.
-    * Some(10).inspect((n) => console.log(n));
-    * 
-    * // Doesn't produce any output.
-    * None.inspect((n) => console.log(n));
-    * ```
-    */
-   inspect(this: Option<T>, f: (val: T) => void): Option<T> {
-      if (this[T]) {
-         f(this[Val] as T);
-      }
+  /**
+   * Computes a default return value if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * const x = Some(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 2);
+   * ```
+   */
+  mapAsyncOrElse<U>(
+    this: Option<T>,
+    def: () => U,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
+    if (!this[T]) {
+      return Promise.resolve(def());
+    }
 
-      return this;
-   }
+    return f(this[Val]);
+  }
+
+  /**
+   * Computes a default return value if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * const x = Some(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 2);
+   * ```
+   */
+  mapOrElseAsync<U>(
+    this: Option<T>,
+    def: () => Promise<U>,
+    f: (val: T) => U
+  ): Promise<U> {
+    if (this[T]) {
+      return Promise.resolve(f(this[Val]));
+    }
+
+    return def();
+  }
+
+  /**
+   * Computes a default return value if `None`, otherwise calls `f` with the
+   * `Some` value and returns the result.
+   *
+   * const x = Some(10);
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 11);
+   *
+   * const x: Option<number> = None;
+   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
+   * assert.equal(xmap.unwrap(), 2);
+   * ```
+   */
+  mapAsyncOrElseAsync<U>(
+    this: Option<T>,
+    def: () => Promise<U>,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
+    return this[T] ? f(this[Val]) : def();
+  }
+
+  /**
+   * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
+   * `Ok(v)` and `None` to `Err(err)`.
+   *
+   * ```
+   * const x = Some(10);
+   * const res = x.okOr("Is empty");
+   * assert.equal(x.isOk(), true);
+   * assert.equal(x.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const res = x.okOr("Is empty");
+   * assert.equal(x.isErr(), true);
+   * assert.equal(x.unwrap_err(), "Is empty");
+   * ```
+   */
+  okOr<E>(this: Option<T>, err: E): Result<T, E> {
+    return this[T] ? Ok(this[Val]) : Err(err);
+  }
+
+  /**
+   * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
+   * `Ok(v)` and `None` to `Err(f())`.
+   *
+   * ```
+   * const x = Some(10);
+   * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+   * assert.equal(x.isOk(), true);
+   * assert.equal(x.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+   * assert.equal(x.isErr(), true);
+   * assert.equal(x.unwrap_err(), "Is empty");
+   * ```
+   */
+  okOrElse<E>(this: Option<T>, f: () => E): Result<T, E> {
+    return this[T] ? Ok(this[Val]) : Err(f());
+  }
+
+  /**
+   * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
+   * `Ok(v)` and `None` to `Err(f())`.
+   *
+   * ```
+   * const x = Some(10);
+   * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+   * assert.equal(x.isOk(), true);
+   * assert.equal(x.unwrap(), 10);
+   *
+   * const x: Option<number> = None;
+   * const res = x.okOrElse(() => ["Is", "empty"].join(" "));
+   * assert.equal(x.isErr(), true);
+   * assert.equal(x.unwrap_err(), "Is empty");
+   * ```
+   */
+  okOrElseAsync<E>(this: Option<T>, f: () => Promise<E>): ResultAsync<T, E> {
+    if (this[T]) {
+      return new ResultTypeAsync(Promise.resolve(Ok(this[Val])));
+    }
+
+    return new ResultTypeAsync(f().then((err) => Err(err)));
+  }
+
+  /**
+   * Calls the provided closure with the contained value (if Some), otherwise does nothing.
+   *
+   * ```
+   * // Prints the contained value.
+   * Some(10).inspect((n) => console.log(n));
+   *
+   * // Doesn't produce any output.
+   * None.inspect((n) => console.log(n));
+   * ```
+   */
+  inspect(this: Option<T>, f: (val: T) => void): Option<T> {
+    if (this[T]) {
+      f(this[Val] as T);
+    }
+
+    return this;
+  }
 }
 
 /**
@@ -698,7 +750,7 @@ class OptionType<T> {
  * ```
  */
 export function Option<T>(val: T): Option<From<T>> {
-   return from(val);
+  return from(val);
 }
 
 Option.is = is;
@@ -720,7 +772,7 @@ Option.any = any;
  * ```
  */
 export function Some<T>(val: T): Some<T> {
-   return new OptionType(val, true) as Some<T>;
+  return new OptionType(val, true) as Some<T>;
 }
 
 /**
@@ -734,7 +786,7 @@ export function Some<T>(val: T): Some<T> {
  * ```
  */
 export const None = Object.freeze(
-   new OptionType<never>(undefined as never, false)
+  new OptionType<never>(undefined as never, false)
 );
 
 /**
@@ -747,7 +799,7 @@ export const None = Object.freeze(
  * ```
  */
 function is(val: unknown): val is Option<unknown> {
-   return val instanceof OptionType;
+  return val instanceof OptionType;
 }
 
 /**
@@ -766,7 +818,7 @@ function is(val: unknown): val is Option<unknown> {
  * ```
  */
 function from<T>(val: T): Option<From<T>> {
-   return isTruthy(val) && !(val instanceof Error) ? (Some(val) as any) : None;
+  return isTruthy(val) && !(val instanceof Error) ? (Some(val) as any) : None;
 }
 
 /**
@@ -780,9 +832,9 @@ function from<T>(val: T): Option<From<T>> {
  * ```
  */
 function nonNull<T>(val: T): Option<NonNullable<T>> {
-   return val === undefined || val === null || val !== val
-      ? None
-      : Some(val as NonNullable<T>);
+  return val === undefined || val === null || val !== val
+    ? None
+    : Some(val as NonNullable<T>);
 }
 
 /**
@@ -798,7 +850,7 @@ function nonNull<T>(val: T): Option<NonNullable<T>> {
  * ```
  */
 function qty<T extends number>(val: T): Option<number> {
-   return val >= 0 && Number.isInteger(val) ? Some(val) : None;
+  return val >= 0 && Number.isInteger(val) ? Some(val) : None;
 }
 
 /**
@@ -851,26 +903,26 @@ function qty<T extends number>(val: T): Option<number> {
  * ```
  */
 function safe<T, A extends any[]>(
-   fn: (...args: A) => T extends PromiseLike<any> ? never : T,
-   ...args: A
+  fn: (...args: A) => T extends PromiseLike<any> ? never : T,
+  ...args: A
 ): Option<T>;
 function safe<T>(promise: Promise<T>): Promise<Option<T>>;
 function safe<T, A extends any[]>(
-   fn: ((...args: A) => T) | Promise<T>,
-   ...args: A
+  fn: ((...args: A) => T) | Promise<T>,
+  ...args: A
 ): Option<T> | Promise<Option<T>> {
-   if (fn instanceof Promise) {
-      return fn.then(
-         (val) => Some(val),
-         () => None
-      );
-   }
+  if (fn instanceof Promise) {
+    return fn.then(
+      (val) => Some(val),
+      () => None
+    );
+  }
 
-   try {
-      return Some(fn(...args));
-   } catch {
-      return None;
-   }
+  try {
+    return Some(fn(...args));
+  } catch {
+    return None;
+  }
 }
 
 /**
@@ -894,16 +946,16 @@ function safe<T, A extends any[]>(
  * ```
  */
 function all<O extends Option<any>[]>(...options: O): Option<OptionTypes<O>> {
-   const some = [];
-   for (const option of options) {
-      if (option.isSome()) {
-         some.push(option.unwrapUnchecked());
-      } else {
-         return None;
-      }
-   }
+  const some = [];
+  for (const option of options) {
+    if (option.isSome()) {
+      some.push(option.unwrapUnchecked());
+    } else {
+      return None;
+    }
+  }
 
-   return Some(some) as Some<OptionTypes<O>>;
+  return Some(some) as Some<OptionTypes<O>>;
 }
 
 /**
@@ -923,12 +975,12 @@ function all<O extends Option<any>[]>(...options: O): Option<OptionTypes<O>> {
  * ```
  */
 function any<O extends Option<any>[]>(
-   ...options: O
+  ...options: O
 ): Option<OptionTypes<O>[number]> {
-   for (const option of options) {
-      if (option.isSome()) {
-         return option as Option<OptionTypes<O>[number]>;
-      }
-   }
-   return None;
+  for (const option of options) {
+    if (option.isSome()) {
+      return option as Option<OptionTypes<O>[number]>;
+    }
+  }
+  return None;
 }

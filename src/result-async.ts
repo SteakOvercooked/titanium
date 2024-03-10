@@ -13,7 +13,7 @@ export class ResultTypeAsync<T, E> {
 
   then<A, B>(
     onSuccess?: (res: Result<T, E>) => A | PromiseLike<A>,
-    onFailure?: (err: unknown) => B | PromiseLike<B>,
+    onFailure?: (err: unknown) => B | PromiseLike<B>
   ): Promise<A | B> {
     return this[Prom].then(onSuccess, onFailure);
   }
@@ -34,8 +34,14 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   async into(this: ResultAsync<T, E>): Promise<T | undefined>;
-  async into<U extends FalseyValues>(this: ResultAsync<T, E>, err: U): Promise<T | U>;
-  async into(this: ResultAsync<T, E>, err?: FalseyValues): Promise<T | FalseyValues> {
+  async into<U extends FalseyValues>(
+    this: ResultAsync<T, E>,
+    err: U
+  ): Promise<T | U>;
+  async into(
+    this: ResultAsync<T, E>,
+    err?: FalseyValues
+  ): Promise<T | FalseyValues> {
     return this.then((res) => res.into(err));
   }
 
@@ -81,7 +87,10 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(await x.isOkAnd((val) === 10), false);
    * ```
    */
-  async isOkAnd(this: ResultAsync<T, E>, f: (val: T) => boolean): Promise<boolean> {
+  async isOkAnd(
+    this: ResultAsync<T, E>,
+    f: (val: T) => boolean
+  ): Promise<boolean> {
     return this.then((res) => res.isOkAnd(f));
   }
 
@@ -96,7 +105,10 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(await x.isOkAnd((val) === 10), false);
    * ```
    */
-  async isOkAndAsync(this: ResultAsync<T, E>, f: (val: T) => Promise<boolean>): Promise<boolean> {
+  async isOkAndAsync(
+    this: ResultAsync<T, E>,
+    f: (val: T) => Promise<boolean>
+  ): Promise<boolean> {
     return this.then((res) => res.isOkAndAsync(f));
   }
 
@@ -122,11 +134,14 @@ export class ResultTypeAsync<T, E> {
    * const x = OkAsync(10);
    * assert.equal(await x.isErrAnd((err) => err === 10), false);
    *
-   *  const x = ErrAsync(10);
-   *  assert.equal(await x.isErrAnd((err) => err === 10), true);
+   * const x = ErrAsync(10);
+   * assert.equal(await x.isErrAnd((err) => err === 10), true);
    * ```
    */
-  async isErrAnd(this: ResultAsync<T, E>, f: (err: E) => boolean): Promise<boolean> {
+  async isErrAnd(
+    this: ResultAsync<T, E>,
+    f: (err: E) => boolean
+  ): Promise<boolean> {
     return this.then((res) => res.isErrAnd(f));
   }
 
@@ -137,11 +152,14 @@ export class ResultTypeAsync<T, E> {
    * const x = OkAsync(10);
    * assert.equal(await x.isErrAnd((err) => err === 10), false);
    *
-   *  const x = ErrAsync(10);
-   *  assert.equal(await x.isErrAnd((err) => err === 10), true);
+   * const x = ErrAsync(10);
+   * assert.equal(await x.isErrAnd((err) => err === 10), true);
    * ```
    */
-  async isErrAndAsync(this: ResultAsync<T, E>, f: (err: E) => Promise<boolean>): Promise<boolean> {
+  async isErrAndAsync(
+    this: ResultAsync<T, E>,
+    f: (err: E) => Promise<boolean>
+  ): Promise<boolean> {
     return this.then((res) => res.isErrAndAsync(f));
   }
 
@@ -163,12 +181,10 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   filter(this: ResultAsync<T, E>, f: (val: T) => boolean): OptionAsync<T> {
-    return new OptionTypeAsync(
-      this.then((res) => res.filter(f))
-    );
+    return new OptionTypeAsync(this.then((res) => res.filter(f)));
   }
 
-    /**
+  /**
    * Creates an `Option<T>` by calling `f` with the contained `Ok` value.
    * Converts `Ok` to `Some` if the filter returns true, or `None` otherwise.
    *
@@ -185,10 +201,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(x.filter((v) => v < 5).isNone(), true);
    * ```
    */
-  filterAsync(this: ResultAsync<T, E>, f: (val: T) => Promise<boolean>): OptionAsync<T> {
-    return new OptionTypeAsync(
-      this.then((res) => res.filterAsync(f))
-    );
+  filterAsync(
+    this: ResultAsync<T, E>,
+    f: (val: T) => Promise<boolean>
+  ): OptionAsync<T> {
+    return new OptionTypeAsync(this.then((res) => res.filterAsync(f)));
   }
 
   /**
@@ -197,7 +214,7 @@ export class ResultTypeAsync<T, E> {
    *
    * To avoid throwing, consider `isErr`, `unwrapOr`, `unwrapOrElse` or
    * `match` to handle the `Err` case.
-   * 
+   *
    * To control the error representation use `mapErr`.
    *
    * ```
@@ -217,7 +234,7 @@ export class ResultTypeAsync<T, E> {
    * including passed `msg` and `T` otherwise.
    *
    * To avoid throwing, consider `isOk` or `match` to handle the `Ok` case.
-   * 
+   *
    * ```
    * const x = OkAsync(1);
    * await x.expectErr("value should not be present"); // throws "value should not be present: 1"
@@ -334,9 +351,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   or(this: ResultAsync<T, E>, resb: Result<T, E>): ResultAsync<T, E> {
-    return new ResultTypeAsync(
-      this.then((res) => res.or(resb))
-    );
+    return new ResultTypeAsync(this.then((res) => res.or(resb)));
   }
 
   /**
@@ -356,9 +371,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   orAsync(this: ResultAsync<T, E>, resb: ResultAsync<T, E>): ResultAsync<T, E> {
-    return new ResultTypeAsync(
-      this.then((res) => res.orAsync(resb))
-    );
+    return new ResultTypeAsync(this.then((res) => res.orAsync(resb)));
   }
 
   /**
@@ -379,34 +392,36 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xor.unwrapErr(), "val 10");
    * ```
    */
-  orElse<F>(this: ResultAsync<T, E>, f: (err: E) => Result<T, F>): ResultAsync<T, F> {
-    return new ResultTypeAsync(
-      this.then((res) => res.orElse(f))
-    );
+  orElse<F>(
+    this: ResultAsync<T, E>,
+    f: (err: E) => Result<T, F>
+  ): ResultAsync<T, F> {
+    return new ResultTypeAsync(this.then((res) => res.orElse(f)));
   }
 
- /**
-  * Returns the Result if it is `Ok`, otherwise returns the value of `f()`
-  * mapping `Result<T, E>` to `Result<T, F>`.
-  *
-  * ```
-  * const x = Ok(10);
-  * const xor = x.orElse(() => Ok(1));
-  * assert.equal(xor.unwrap(), 10);
-  *
-  * const x = Err(10);
-  * const xor = x.orElse(() => Ok(1));
-  * assert.equal(xor.unwrap(), 1);
-  *
-  * const x = Err(10);
-  * const xor = x.orElse((e) => Err(`val ${e}`));
-  * assert.equal(xor.unwrapErr(), "val 10");
-  * ```
-  */
-  orElseAsync<F>(this: ResultAsync<T, E>, f: (err: E) => Promise<Result<T, F>>): ResultAsync<T, F> {
-    return new ResultTypeAsync(
-      this.then((res) => res.orElseAsync(f))
-    );
+  /**
+   * Returns the Result if it is `Ok`, otherwise returns the value of `f()`
+   * mapping `Result<T, E>` to `Result<T, F>`.
+   *
+   * ```
+   * const x = Ok(10);
+   * const xor = x.orElse(() => Ok(1));
+   * assert.equal(xor.unwrap(), 10);
+   *
+   * const x = Err(10);
+   * const xor = x.orElse(() => Ok(1));
+   * assert.equal(xor.unwrap(), 1);
+   *
+   * const x = Err(10);
+   * const xor = x.orElse((e) => Err(`val ${e}`));
+   * assert.equal(xor.unwrapErr(), "val 10");
+   * ```
+   */
+  orElseAsync<F>(
+    this: ResultAsync<T, E>,
+    f: (err: E) => Promise<Result<T, F>>
+  ): ResultAsync<T, F> {
+    return new ResultTypeAsync(this.then((res) => res.orElseAsync(f)));
   }
 
   /**
@@ -427,9 +442,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   and<U>(this: ResultAsync<T, E>, resb: Result<U, E>): ResultAsync<U, E> {
-    return new ResultTypeAsync(
-      this.then((res) => res.and(resb))
-    );
+    return new ResultTypeAsync(this.then((res) => res.and(resb)));
   }
 
   /**
@@ -449,7 +462,10 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xand.unwrapErr(), 1);
    * ```
    */
-  andAsync<U>(this: ResultAsync<T, E>, resb: ResultAsync<U, E>): ResultAsync<U, E> {
+  andAsync<U>(
+    this: ResultAsync<T, E>,
+    resb: ResultAsync<U, E>
+  ): ResultAsync<U, E> {
     return new ResultTypeAsync(
       this.then((res) => {
         if (res.isErr()) {
@@ -479,10 +495,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xand.unwrapErr(), 1);
    * ```
    */
-  andThen<U>(this: ResultAsync<T, E>, f: (val: T) => Result<U, E>): ResultAsync<U, E> {
-    return new ResultTypeAsync(
-      this.then((res) => res.andThen(f))
-    );
+  andThen<U>(
+    this: ResultAsync<T, E>,
+    f: (val: T) => Result<U, E>
+  ): ResultAsync<U, E> {
+    return new ResultTypeAsync(this.then((res) => res.andThen(f)));
   }
 
   /**
@@ -503,10 +520,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xand.unwrapErr(), 1);
    * ```
    */
-  andThenAsync<U>(this: ResultAsync<T, E>, f: (val: T) => Promise<Result<U, E>>): ResultAsync<U, E> {
-    return new ResultTypeAsync(
-      this.then((res) => res.andThenAsync(f))
-    );
+  andThenAsync<U>(
+    this: ResultAsync<T, E>,
+    f: (val: T) => Promise<Result<U, E>>
+  ): ResultAsync<U, E> {
+    return new ResultTypeAsync(this.then((res) => res.andThenAsync(f)));
   }
 
   /**
@@ -520,9 +538,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   map<U>(this: ResultAsync<T, E>, f: (val: T) => U): ResultAsync<U, E> {
-    return new ResultTypeAsync(
-      this.then((res) => res.map(f))
-    );
+    return new ResultTypeAsync(this.then((res) => res.map(f)));
   }
 
   /**
@@ -535,11 +551,12 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrap(), "number 10");
    * ```
    */
-  mapAsync<U>(this: ResultAsync<T, E>, f: (val: T) => Promise<U>): ResultAsync<U, E> {
+  mapAsync<U>(
+    this: ResultAsync<T, E>,
+    f: (val: T) => Promise<U>
+  ): ResultAsync<U, E> {
     // return this.then((res) => res.mapAsyncOr(f))
-    return new ResultTypeAsync(
-      this.then((res) => res.mapAsync(f))
-    );
+    return new ResultTypeAsync(this.then((res) => res.mapAsync(f)));
   }
 
   /**
@@ -553,9 +570,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   mapErr<F>(this: ResultAsync<T, E>, op: (err: E) => F): ResultAsync<T, F> {
-    return new ResultTypeAsync(
-      this.then((res) => res.mapErr(op))
-    );
+    return new ResultTypeAsync(this.then((res) => res.mapErr(op)));
   }
 
   /**
@@ -568,10 +583,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrapErr(), "number 10");
    * ```
    */
-  mapErrAsync<F>(this: ResultAsync<T, E>, op: (err: E) => Promise<F>): ResultAsync<T, F> {
-    return new ResultTypeAsync(
-      this.then((res) => res.mapErrAsync(op))
-    );
+  mapErrAsync<F>(
+    this: ResultAsync<T, E>,
+    op: (err: E) => Promise<F>
+  ): ResultAsync<T, F> {
+    return new ResultTypeAsync(this.then((res) => res.mapErrAsync(op)));
   }
 
   /**
@@ -591,7 +607,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  async mapOr<U>(this: ResultAsync<T, E>, def: U, f: (val: T) => U): Promise<U> {
+  async mapOr<U>(
+    this: ResultAsync<T, E>,
+    def: U,
+    f: (val: T) => U
+  ): Promise<U> {
     return this.then((res) => res.mapOr(def, f));
   }
 
@@ -612,7 +632,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  async mapAsyncOr<U>(this: ResultAsync<T, E>, def: U, f: (val: T) => Promise<U>): Promise<U> {
+  async mapAsyncOr<U>(
+    this: ResultAsync<T, E>,
+    def: U,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
     return this.then((res) => res.mapAsyncOr(def, f));
   }
 
@@ -630,7 +654,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrap(), 2);
    * ```
    */
-  async mapOrElse<U>(this: ResultAsync<T, E>, def: (err: E) => U, f: (val: T) => U): Promise<U> {
+  async mapOrElse<U>(
+    this: ResultAsync<T, E>,
+    def: (err: E) => U,
+    f: (val: T) => U
+  ): Promise<U> {
     return this.then((res) => res.mapOrElse(def, f));
   }
 
@@ -648,7 +676,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrap(), 2);
    * ```
    */
-  async mapAsyncOrElse<U>(this: ResultAsync<T, E>, def: (err: E) => U, f: (val: T) => Promise<U>): Promise<U> {
+  async mapAsyncOrElse<U>(
+    this: ResultAsync<T, E>,
+    def: (err: E) => U,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
     return this.then((res) => res.mapAsyncOrElse(def, f));
   }
 
@@ -666,7 +698,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrap(), 2);
    * ```
    */
-  async mapOrElseAsync<U>(this: ResultAsync<T, E>, def: (err: E) => Promise<U>, f: (val: T) => U): Promise<U> {
+  async mapOrElseAsync<U>(
+    this: ResultAsync<T, E>,
+    def: (err: E) => Promise<U>,
+    f: (val: T) => U
+  ): Promise<U> {
     return this.then((res) => res.mapOrElseAsync(def, f));
   }
 
@@ -684,7 +720,11 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(xmap.unwrap(), 2);
    * ```
    */
-  async mapAsyncOrElseAsync<U>(this: ResultAsync<T, E>, def: (err: E) => Promise<U>, f: (val: T) => Promise<U>): Promise<U> {
+  async mapAsyncOrElseAsync<U>(
+    this: ResultAsync<T, E>,
+    def: (err: E) => Promise<U>,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
     return this.then((res) => res.mapAsyncOrElseAsync(def, f));
   }
 
@@ -705,18 +745,16 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   ok(this: ResultAsync<T, E>): OptionAsync<T> {
-    return new OptionTypeAsync(
-      this.then((res) => res.ok())
-    );
+    return new OptionTypeAsync(this.then((res) => res.ok()));
   }
 
   /**
    * Calls the provided closure with the contained Ok value otherwise does nothing.
-   * 
+   *
    * ```
    * // Prints the contained value.
    * Ok(10).inspect((n) => console.log(n));
-   * 
+   *
    * // Doesn't produce any output.
    * Err(10).inspect((n) => console.log(n));
    * ```
@@ -728,11 +766,11 @@ export class ResultTypeAsync<T, E> {
 
   /**
    * Calls the provided closure with the contained Err value otherwise does nothing.
-   * 
+   *
    * ```
    * // Doesn't produce any output.
    * Ok(10).inspectErr((n) => console.log(n));
-   * 
+   *
    * // Prints the contained error.
    * Err(10).inspectErr((n) => console.log(n));
    * ```

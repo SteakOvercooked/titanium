@@ -13,7 +13,7 @@ export class OptionTypeAsync<T> {
 
   then<A, B>(
     onSuccess?: (res: Option<T>) => A | PromiseLike<A>,
-    onFailure?: (err: unknown) => B | PromiseLike<B>,
+    onFailure?: (err: unknown) => B | PromiseLike<B>
   ): Promise<A | B> {
     return this[Prom].then(onSuccess, onFailure);
   }
@@ -34,8 +34,14 @@ export class OptionTypeAsync<T> {
    * ```
    */
   async into(this: OptionAsync<T>): Promise<T | undefined>;
-  async into<U extends FalseyValues>(this: OptionAsync<T>, none: U): Promise<T | U>;
-  async into(this: OptionAsync<T>, none?: FalseyValues): Promise<T | FalseyValues> {
+  async into<U extends FalseyValues>(
+    this: OptionAsync<T>,
+    none: U
+  ): Promise<T | U>;
+  async into(
+    this: OptionAsync<T>,
+    none?: FalseyValues
+  ): Promise<T | FalseyValues> {
     return this.then((opt) => opt.into(none));
   }
 
@@ -52,6 +58,42 @@ export class OptionTypeAsync<T> {
    */
   async isSome(this: OptionAsync<T>): Promise<boolean> {
     return this.then((opt) => opt.isSome());
+  }
+
+  /**
+   * Returns true if the Option is `Some` and acts as a type guard.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.Is(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.Is(), false);
+   * ```
+   */
+  async isSomeAnd(
+    this: OptionAsync<T>,
+    f: (val: T) => boolean
+  ): Promise<boolean> {
+    return this.then((opt) => opt.isSomeAnd(f));
+  }
+
+  /**
+   * Returns true if the Option is `Some` and acts as a type guard.
+   *
+   * ```
+   * const x = Some(10);
+   * assert.equal(x.Is(), true);
+   *
+   * const x: Option<number> = None;
+   * assert.equal(x.Is(), false);
+   * ```
+   */
+  async isSomeAndAsync(
+    this: OptionAsync<T>,
+    f: (val: T) => Promise<boolean>
+  ): Promise<boolean> {
+    return this.then((opt) => opt.isSomeAndAsync(f));
   }
 
   /**
@@ -87,9 +129,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   filter(this: OptionAsync<T>, f: (val: T) => boolean): OptionAsync<T> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.filter(f))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.filter(f)));
   }
 
   /**
@@ -109,10 +149,11 @@ export class OptionTypeAsync<T> {
    * assert.equal(x.filter((v) => v < 5).isNone(), true);
    * ```
    */
-  filterAsync(this: OptionAsync<T>, f: (val: T) => Promise<boolean>): OptionAsync<T> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.filterAsync(f))
-    );
+  filterAsync(
+    this: OptionAsync<T>,
+    f: (val: T) => Promise<boolean>
+  ): OptionAsync<T> {
+    return new OptionTypeAsync(this.then((opt) => opt.filterAsync(f)));
   }
 
   /**
@@ -196,7 +237,10 @@ export class OptionTypeAsync<T> {
    * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
    * ```
    */
-  async unwrapOrElseAsync(this: OptionAsync<T>, f: () => Promise<T>): Promise<T> {
+  async unwrapOrElseAsync(
+    this: OptionAsync<T>,
+    f: () => Promise<T>
+  ): Promise<T> {
     return this.then((opt) => opt.unwrapOrElseAsync(f));
   }
 
@@ -235,9 +279,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   or(this: OptionAsync<T>, optb: Option<T>): OptionAsync<T> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.or(optb))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.or(optb)));
   }
 
   /**
@@ -257,9 +299,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   orAsync(this: OptionAsync<T>, optb: OptionAsync<T>): OptionAsync<T> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.orAsync(optb))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.orAsync(optb)));
   }
 
   /**
@@ -276,9 +316,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   orElse(this: OptionAsync<T>, f: () => Option<T>): OptionAsync<T> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.orElse(f))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.orElse(f)));
   }
 
   /**
@@ -299,9 +337,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   and<U>(this: OptionAsync<T>, optb: Option<U>): OptionAsync<U> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.and(optb))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.and(optb)));
   }
 
   /**
@@ -322,9 +358,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   andAsync<U>(this: OptionAsync<T>, optb: OptionAsync<U>): OptionAsync<U> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.andAsync(optb))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.andAsync(optb)));
   }
 
   /**
@@ -346,9 +380,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   andThen<U>(this: OptionAsync<T>, f: (val: T) => Option<U>): OptionAsync<U> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.andThen(f))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.andThen(f)));
   }
 
   /**
@@ -369,10 +401,11 @@ export class OptionTypeAsync<T> {
    * assert.equal(xand.isNone(), true);
    * ```
    */
-  andThenAsync<U>(this: OptionAsync<T>, f: (val: T) => Promise<Option<U>>): OptionAsync<U> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.andThenAsync(f))
-    );
+  andThenAsync<U>(
+    this: OptionAsync<T>,
+    f: (val: T) => Promise<Option<U>>
+  ): OptionAsync<U> {
+    return new OptionTypeAsync(this.then((opt) => opt.andThenAsync(f)));
   }
 
   /**
@@ -386,9 +419,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   map<U>(this: OptionAsync<T>, f: (val: T) => U): OptionAsync<U> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.map(f))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.map(f)));
   }
 
   /**
@@ -402,9 +433,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   mapAsync<U>(this: OptionAsync<T>, f: (val: T) => Promise<U>): OptionAsync<U> {
-    return new OptionTypeAsync(
-      this.then((opt) => opt.mapAsync(f))
-    );
+    return new OptionTypeAsync(this.then((opt) => opt.mapAsync(f)));
   }
 
   /**
@@ -445,7 +474,11 @@ export class OptionTypeAsync<T> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  async mapAsyncOr<U>(this: OptionAsync<T>, def: U, f: (val: T) => Promise<U>): Promise<U> {
+  async mapAsyncOr<U>(
+    this: OptionAsync<T>,
+    def: U,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
     return this.then((opt) => opt.mapAsyncOr(def, f));
   }
 
@@ -466,7 +499,11 @@ export class OptionTypeAsync<T> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  async mapOrElse<U>(this: OptionAsync<T>, def: () => U, f: (val: T) => U): Promise<U> {
+  async mapOrElse<U>(
+    this: OptionAsync<T>,
+    def: () => U,
+    f: (val: T) => U
+  ): Promise<U> {
     return this.then((opt) => opt.mapOrElse(def, f));
   }
 
@@ -487,7 +524,11 @@ export class OptionTypeAsync<T> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  async mapAsyncOrElse<U>(this: OptionAsync<T>, def: () => U, f: (val: T) => Promise<U>): Promise<U> {
+  async mapAsyncOrElse<U>(
+    this: OptionAsync<T>,
+    def: () => U,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
     return this.then((opt) => opt.mapAsyncOrElse(def, f));
   }
 
@@ -508,7 +549,11 @@ export class OptionTypeAsync<T> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  async mapOrElseAsync<U>(this: OptionAsync<T>, def: () => Promise<U>, f: (val: T) => U): Promise<U> {
+  async mapOrElseAsync<U>(
+    this: OptionAsync<T>,
+    def: () => Promise<U>,
+    f: (val: T) => U
+  ): Promise<U> {
     return this.then((opt) => opt.mapOrElseAsync(def, f));
   }
 
@@ -529,7 +574,11 @@ export class OptionTypeAsync<T> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  async mapAsyncOrElseAsync<U>(this: OptionAsync<T>, def: () => Promise<U>, f: (val: T) => Promise<U>): Promise<U> {
+  async mapAsyncOrElseAsync<U>(
+    this: OptionAsync<T>,
+    def: () => Promise<U>,
+    f: (val: T) => Promise<U>
+  ): Promise<U> {
     return this.then((opt) => opt.mapAsyncOrElseAsync(def, f));
   }
 
@@ -550,9 +599,7 @@ export class OptionTypeAsync<T> {
    * ```
    */
   okOr<E>(this: OptionAsync<T>, err: E): ResultAsync<T, E> {
-    return new ResultTypeAsync(
-      this.then((opt) => opt.okOr(err))
-    );
+    return new ResultTypeAsync(this.then((opt) => opt.okOr(err)));
   }
 
   /**
@@ -572,12 +619,10 @@ export class OptionTypeAsync<T> {
    * ```
    */
   okOrElse<E>(this: OptionAsync<T>, f: () => E): ResultAsync<T, E> {
-    return new ResultTypeAsync(
-      this.then((opt) => opt.okOrElse(f))
-    );
+    return new ResultTypeAsync(this.then((opt) => opt.okOrElse(f)));
   }
 
-    /**
+  /**
    * Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
    * `Ok(v)` and `None` to `Err(f())`.
    *
@@ -593,19 +638,20 @@ export class OptionTypeAsync<T> {
    * assert.equal(x.unwrap_err(), "Is empty");
    * ```
    */
-  okOrElseAsync<E>(this: OptionAsync<T>, f: () => Promise<E>): ResultAsync<T, E> {
-    return new ResultTypeAsync(
-      this.then((opt) => opt.okOrElseAsync(f))
-    );
+  okOrElseAsync<E>(
+    this: OptionAsync<T>,
+    f: () => Promise<E>
+  ): ResultAsync<T, E> {
+    return new ResultTypeAsync(this.then((opt) => opt.okOrElseAsync(f)));
   }
 
   /**
    * Calls the provided closure with the contained value (if `Some`), otherwise does nothing.
-   * 
+   *
    * ```
    * // Prints the contained value.
    * Some(10).inspect((n) => console.log(n));
-   * 
+   *
    * // Doesn't produce any output.
    * None.inspect((n) => console.log(n));
    * ```
