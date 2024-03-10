@@ -349,25 +349,12 @@ class ResultType<T, E> {
    * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
    * ```
    */
-  unwrapOrElse(this: Result<T, E>, f: (err: E) => T): T {
-    return this[T] ? (this[Val] as T) : f(this[Val] as E);
-  }
-
-  /**
-   * Returns the contained `Ok` value or computes it from a function.
-   *
-   * ```
-   * const x = Ok(10);
-   * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
-   *
-   * const x = Err(10);
-   * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
-   * ```
-   */
-  async unwrapOrElseAsync(
+  unwrapOrElse(this: Result<T, E>, f: (err: E) => T): T;
+  unwrapOrElse(this: Result<T, E>, f: (err: E) => Promise<T>): Promise<T>;
+  unwrapOrElse(
     this: Result<T, E>,
-    f: (err: E) => Promise<T>
-  ): Promise<T> {
+    f: (err: E) => T | Promise<T>
+  ): T | Promise<T> {
     return this[T] ? (this[Val] as T) : f(this[Val] as E);
   }
 
@@ -674,37 +661,14 @@ class ResultType<T, E> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  mapOr<U>(this: Result<T, E>, def: U, f: (val: T) => U): U {
-    return this[T] ? f(this[Val] as T) : def;
-  }
-
-  /**
-   * Returns the provided default if `Err`, otherwise calls `f` with the
-   * `Ok` value and returns the result.
-   *
-   * The provided default is eagerly evaluated. If you are passing the result
-   * of a function call, consider `mapOrElse`, which is lazily evaluated.
-   *
-   * ```
-   * const x = Ok(10);
-   * const xmap = x.mapOr(1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x = Err(10);
-   * const xmap = x.mapOr(1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 1);
-   * ```
-   */
-  async mapAsyncOr<U>(
+  mapOr<U>(this: Result<T, E>, def: U, f: (val: T) => U): U;
+  mapOr<U>(this: Result<T, E>, def: U, f: (val: T) => Promise<U>): Promise<U>;
+  mapOr<U>(
     this: Result<T, E>,
     def: U,
-    f: (val: T) => Promise<U>
-  ): Promise<U> {
-    if (!this[T]) {
-      return Promise.resolve(def);
-    }
-
-    return f(this[Val] as T);
+    f: (val: T) => U | Promise<U>
+  ): U | Promise<U> {
+    return this[T] ? f(this[Val] as T) : def;
   }
 
   /**

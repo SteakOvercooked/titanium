@@ -94,14 +94,12 @@ export default function methods() {
     expect(AsRes(Err(1)).unwrapOr(2)).to.equal(2);
   });
 
-  it("unwrapOrElse", () => {
+  it("unwrapOrElse", async () => {
     expect(Ok(1).unwrapOrElse(() => 2)).to.equal(1);
     expect(AsRes(Err(1)).unwrapOrElse(() => 2)).to.equal(2);
-  });
 
-  it("unwrapOrElseAsync", async () => {
-    expect(await Ok(1).unwrapOrElseAsync(async () => 2)).to.equal(1);
-    expect(await AsRes(Err(1)).unwrapOrElseAsync(async () => 2)).to.equal(2);
+    expect(await Ok(1).unwrapOrElse(async () => 2)).to.equal(1);
+    expect(await AsRes(Err(1)).unwrapOrElse(async () => 2)).to.equal(2);
   });
 
   it("unwrapUnchecked", () => {
@@ -248,14 +246,12 @@ export default function methods() {
     ).to.equal(1);
   });
 
-  it("mapOr", () => {
+  it("mapOr", async () => {
     expect(Ok(1).mapOr(3, (val) => val + 1)).to.equal(2);
     expect(Err(1).mapOr(3, (val) => val + 1)).to.equal(3);
-  });
 
-  it("mapAsyncOr", async () => {
-    expect(await Ok(1).mapAsyncOr(3, async (val) => val + 1)).to.equal(2);
-    expect(await Err(1).mapAsyncOr(3, async (val) => val + 1)).to.equal(3);
+    expect(await Ok(1).mapOr(3, async (val) => val + 1)).to.equal(2);
+    expect(await Err(1).mapOr(3, async (val) => val + 1)).to.equal(3);
   });
 
   it("mapOrElse", () => {
