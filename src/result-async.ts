@@ -598,76 +598,10 @@ export class ResultTypeAsync<T, E> {
    */
   async mapOrElse<U>(
     this: ResultAsync<T, E>,
-    def: (err: E) => U,
-    f: (val: T) => U
+    def: (err: E) => U | Promise<U>,
+    f: (val: T) => U | Promise<U>
   ): Promise<U> {
     return this.then((res) => res.mapOrElse(def, f));
-  }
-
-  /**
-   * Computes a default return value if `Err`, otherwise calls `f` with the
-   * `Ok` value and returns the result.
-   *
-   * ```
-   * const x = Ok(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x = Err(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  async mapAsyncOrElse<U>(
-    this: ResultAsync<T, E>,
-    def: (err: E) => U,
-    f: (val: T) => Promise<U>
-  ): Promise<U> {
-    return this.then((res) => res.mapAsyncOrElse(def, f));
-  }
-
-  /**
-   * Computes a default return value if `Err`, otherwise calls `f` with the
-   * `Ok` value and returns the result.
-   *
-   * ```
-   * const x = Ok(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x = Err(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  async mapOrElseAsync<U>(
-    this: ResultAsync<T, E>,
-    def: (err: E) => Promise<U>,
-    f: (val: T) => U
-  ): Promise<U> {
-    return this.then((res) => res.mapOrElseAsync(def, f));
-  }
-
-  /**
-   * Computes a default return value if `Err`, otherwise calls `f` with the
-   * `Ok` value and returns the result.
-   *
-   * ```
-   * const x = Ok(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x = Err(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  async mapAsyncOrElseAsync<U>(
-    this: ResultAsync<T, E>,
-    def: (err: E) => Promise<U>,
-    f: (val: T) => Promise<U>
-  ): Promise<U> {
-    return this.then((res) => res.mapAsyncOrElseAsync(def, f));
   }
 
   /**

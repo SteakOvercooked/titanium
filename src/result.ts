@@ -685,81 +685,27 @@ class ResultType<T, E> {
    * assert.equal(xmap.unwrap(), 2);
    * ```
    */
-  mapOrElse<U>(this: Result<T, E>, def: (err: E) => U, f: (val: T) => U): U {
-    return this[T] ? f(this[Val] as T) : def(this[Val] as E);
-  }
-
-  /**
-   * Computes a default return value if `Err`, otherwise calls `f` with the
-   * `Ok` value and returns the result.
-   *
-   * ```
-   * const x = Ok(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x = Err(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  mapAsyncOrElse<U>(
-    this: Result<T, E>,
-    def: (err: E) => U,
-    f: (val: T) => Promise<U>
-  ): Promise<U> {
-    if (!this[T]) {
-      return Promise.resolve(def(this[Val] as E));
-    }
-
-    return f(this[Val] as T);
-  }
-
-  /**
-   * Computes a default return value if `Err`, otherwise calls `f` with the
-   * `Ok` value and returns the result.
-   *
-   * ```
-   * const x = Ok(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x = Err(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  mapOrElseAsync<U>(
+  mapOrElse<U>(this: Result<T, E>, def: (err: E) => U, f: (val: T) => U): U;
+  mapOrElse<U>(
     this: Result<T, E>,
     def: (err: E) => Promise<U>,
     f: (val: T) => U
-  ): Promise<U> {
-    if (this[T]) {
-      return Promise.resolve(f(this[Val] as T));
-    }
-
-    return def(this[Val] as E);
-  }
-
-  /**
-   * Computes a default return value if `Err`, otherwise calls `f` with the
-   * `Ok` value and returns the result.
-   *
-   * ```
-   * const x = Ok(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x = Err(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  mapAsyncOrElseAsync<U>(
+  ): Promise<U>;
+  mapOrElse<U>(
+    this: Result<T, E>,
+    def: (err: E) => U,
+    f: (val: T) => Promise<U>
+  ): Promise<U>;
+  mapOrElse<U>(
     this: Result<T, E>,
     def: (err: E) => Promise<U>,
     f: (val: T) => Promise<U>
-  ): Promise<U> {
+  ): Promise<U>;
+  mapOrElse<U>(
+    this: Result<T, E>,
+    def: (err: E) => U | Promise<U>,
+    f: (val: T) => U | Promise<U>
+  ): U | Promise<U> {
     return this[T] ? f(this[Val] as T) : def(this[Val] as E);
   }
 
