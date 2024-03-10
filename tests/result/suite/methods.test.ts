@@ -182,6 +182,24 @@ export default function methods() {
       ).to.equal("num 2");
    });
 
+   it("andThenAsync", async () => {
+      expect(
+         await AsRes(Ok(1))
+            .andThenAsync(async () => Err(1))
+            .isErr()
+      ).to.be.true;
+      expect(
+         await Err(1)
+            .andThenAsync(async () => Ok(2))
+            .isErr()
+      ).to.be.true;
+      expect(
+         await Ok(1)
+            .andThenAsync(async (val) => Ok(`num ${val + 1}`))
+            .unwrap()
+      ).to.equal("num 2");
+   });
+
    it("map", () => {
       expect(
          Ok(1)
@@ -193,6 +211,19 @@ export default function methods() {
             .map((val) => val + 1)
             .unwrap()
       ).to.throw("1");
+   });
+
+   it("mapAsync", async () => {
+      expect(
+         await Ok(1)
+            .mapAsync(async (val) => val + 1)
+            .unwrap()
+      ).to.equal(2);
+      expect(
+         await Err(1)
+            .mapAsync(async (val) => val + 1)
+            .unwrapErr()
+      ).to.equal(1);
    });
 
    it("mapErr", () => {
@@ -208,9 +239,27 @@ export default function methods() {
       ).to.throw("1");
    });
 
+   it("mapErrAsync", async () => {
+      expect(
+         await Err(1)
+            .mapErrAsync(async (val) => val + 1)
+            .unwrapErr()
+      ).to.equal(2);
+      expect(
+         await Ok(1)
+            .mapErrAsync(async (val) => val + 1)
+            .unwrap()
+      ).to.equal(1);
+   });
+
    it("mapOr", () => {
       expect(Ok(1).mapOr(3, (val) => val + 1)).to.equal(2);
       expect(Err(1).mapOr(3, (val) => val + 1)).to.equal(3);
+   });
+
+   it("mapAsyncOr", async () => {
+      expect(await Ok(1).mapAsyncOr(3, async (val) => val + 1)).to.equal(2);
+      expect(await Err(1).mapAsyncOr(3, async (val) => val + 1)).to.equal(3);
    });
 
    it("mapOrElse", () => {
@@ -224,6 +273,51 @@ export default function methods() {
          Err(1).mapOrElse(
             (err) => err + 2,
             (val) => val + 1
+         )
+      ).to.equal(3);
+   });
+
+   it("mapAsyncOrElse", async () => {
+      expect(
+         await Ok(1).mapAsyncOrElse(
+            () => 3,
+            async (val) => val + 1
+         )
+      ).to.equal(2);
+      expect(
+         await Err(1).mapAsyncOrElse(
+            (err) => err + 2,
+            async (val) => val + 1
+         )
+      ).to.equal(3);
+   });
+
+   it("mapOrElseAsync", async () => {
+      expect(
+         await Ok(1).mapOrElseAsync(
+            async () => 3,
+            (val) => val + 1
+         )
+      ).to.equal(2);
+      expect(
+         await Err(1).mapOrElseAsync(
+            async (err) => err + 2,
+            (val) => val + 1
+         )
+      ).to.equal(3);
+   });
+
+   it("mapAsyncOrElseAsync", async () => {
+      expect(
+         await Ok(1).mapAsyncOrElseAsync(
+            async () => 3,
+            async (val) => val + 1
+         )
+      ).to.equal(2);
+      expect(
+         await Err(1).mapAsyncOrElseAsync(
+            async (err) => err + 2,
+            async (val) => val + 1
          )
       ).to.equal(3);
    });
