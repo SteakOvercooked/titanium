@@ -35,7 +35,7 @@ function resultSafeFunction() {
    }
 
    {
-      const x: Result<string, Error> = Result.safe(mightThrow, true);
+      const x: Result<string, Error> = Result.safe(() => mightThrow(true));
       assert.equal(x.unwrapErr() instanceof Error, true);
       assert.equal(x.unwrapErr().message, "Throw");
    }
@@ -55,13 +55,13 @@ async function resultSafePromise() {
    }
 
    {
-      const x = await Result.safe(mightThrow(true));
+      const x = await Result.safeAsync(mightThrow(true));
       assert.equal(x.unwrapErr() instanceof Error, true);
       assert.equal(x.unwrapErr().message, "Throw");
    }
 
    {
-      const x = await Result.safe(mightThrow(false));
+      const x = await Result.safeAsync(mightThrow(false));
       assert.equal(x.unwrap(), "Hello World");
    }
 }
