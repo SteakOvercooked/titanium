@@ -89,27 +89,9 @@ export class ResultTypeAsync<T, E> {
    */
   async isOkAnd(
     this: ResultAsync<T, E>,
-    f: (val: T) => boolean
+    f: (val: T) => boolean | Promise<boolean>
   ): Promise<boolean> {
-    return this.then((res) => res.isOkAnd(f));
-  }
-
-  /**
-   * Returns a `Promise` that resolves to true (if `Ok` and the value inside of it matches a predicate).
-   *
-   * ```
-   * const x = OkAsync(10);
-   * assert.equal(await x.isOkAnd((val) === 10), true);
-   *
-   * const x = ErrAsync(10);
-   * assert.equal(await x.isOkAnd((val) === 10), false);
-   * ```
-   */
-  async isOkAndAsync(
-    this: ResultAsync<T, E>,
-    f: (val: T) => Promise<boolean>
-  ): Promise<boolean> {
-    return this.then((res) => res.isOkAndAsync(f));
+    return this.then((res) => res.isOkAnd(f as any));
   }
 
   /**
@@ -140,27 +122,9 @@ export class ResultTypeAsync<T, E> {
    */
   async isErrAnd(
     this: ResultAsync<T, E>,
-    f: (err: E) => boolean
+    f: (err: E) => boolean | Promise<boolean>
   ): Promise<boolean> {
-    return this.then((res) => res.isErrAnd(f));
-  }
-
-  /**
-   * Returns a `Promise` that resolves to true (if `Err` and the value inside of it matches a predicate).
-   *
-   * ```
-   * const x = OkAsync(10);
-   * assert.equal(await x.isErrAnd((err) => err === 10), false);
-   *
-   * const x = ErrAsync(10);
-   * assert.equal(await x.isErrAnd((err) => err === 10), true);
-   * ```
-   */
-  async isErrAndAsync(
-    this: ResultAsync<T, E>,
-    f: (err: E) => Promise<boolean>
-  ): Promise<boolean> {
-    return this.then((res) => res.isErrAndAsync(f));
+    return this.then((res) => res.isErrAnd(f as any));
   }
 
   /**

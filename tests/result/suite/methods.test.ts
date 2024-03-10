@@ -24,16 +24,14 @@ export default function methods() {
     expect(Err(1).isOk()).to.be.false;
   });
 
-  it("isOkAnd", () => {
+  it("isOkAnd", async () => {
     expect(Ok(1).isOkAnd((val) => val === 1)).to.be.true;
     expect(Ok(1).isOkAnd((val) => val > 1)).to.be.false;
     expect(Err(1).isOkAnd((val) => val === 1)).to.be.false;
-  });
 
-  it("isOkAndAsync", async () => {
-    expect(await Ok(1).isOkAndAsync(async (val) => val === 1)).to.be.true;
-    expect(await Ok(1).isOkAndAsync(async (val) => val > 1)).to.be.false;
-    expect(await Err(1).isOkAndAsync(async (val) => val === 1)).to.be.false;
+    expect(await Ok(1).isOkAnd(async (val) => val === 1)).to.be.true;
+    expect(await Ok(1).isOkAnd(async (val) => val > 1)).to.be.false;
+    expect(await Err(1).isOkAnd(async (val) => val === 1)).to.be.false;
   });
 
   it("isErr", () => {
@@ -41,16 +39,14 @@ export default function methods() {
     expect(Err(1).isErr()).to.be.true;
   });
 
-  it("isErrAnd", () => {
+  it("isErrAnd", async () => {
     expect(Ok(1).isErrAnd((val) => val === 1)).to.be.false;
     expect(Err(1).isErrAnd((val) => val > 1)).to.be.false;
     expect(Err(1).isErrAnd((val) => val === 1)).to.be.true;
-  });
 
-  it("isErrAndAsync", async () => {
-    expect(await Ok(1).isErrAndAsync(async (val) => val === 1)).to.be.false;
-    expect(await Err(1).isErrAndAsync(async (val) => val > 1)).to.be.false;
-    expect(await Err(1).isErrAndAsync(async (val) => val === 1)).to.be.true;
+    expect(await Ok(1).isErrAnd(async (val) => val === 1)).to.be.false;
+    expect(await Err(1).isErrAnd(async (val) => val > 1)).to.be.false;
+    expect(await Err(1).isErrAnd(async (val) => val === 1)).to.be.true;
   });
 
   it("filter", () => {

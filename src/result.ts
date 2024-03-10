@@ -96,25 +96,15 @@ class ResultType<T, E> {
    * assert.equal(x.isOkAnd((n) => n === 10), false);
    * ```
    */
-  isOkAnd(this: Result<T, E>, f: (val: T) => boolean): this is Ok<T> {
-    return this[T] && f(this[Val] as T);
-  }
-
-  /**
-   * Returns a `Promise` that resolves with true (if `Ok` and the value inside of it matches a predicate), or false otherwise.
-   *
-   * ```
-   * const x = Ok(10);
-   * assert.equal(x.isOkAnd((n) => n === 10), true);
-   *
-   * const x = Err(10);
-   * assert.equal(x.isOkAnd((n) => n === 10), false);
-   * ```
-   */
-  async isOkAndAsync(
+  isOkAnd(this: Result<T, E>, f: (val: T) => boolean): boolean;
+  isOkAnd(
     this: Result<T, E>,
     f: (val: T) => Promise<boolean>
-  ): Promise<boolean> {
+  ): Promise<boolean>;
+  isOkAnd(
+    this: Result<T, E>,
+    f: (val: T) => boolean | Promise<boolean>
+  ): boolean | Promise<boolean> {
     return this[T] && f(this[Val] as T);
   }
 
@@ -145,26 +135,15 @@ class ResultType<T, E> {
    * assert.equal(x.isErrAnd((n) => n === 10), true);
    * ```
    */
-  isErrAnd(this: Result<T, E>, f: (err: E) => boolean): this is Err<E> {
-    return !this[T] && f(this[Val] as E);
-  }
-
-  /**
-   * Returns true if the Result is `Err` and the value inside of it matches a predicate.
-   * Acts as a type guard.
-   *
-   * ```
-   * const x = Ok(10);
-   * assert.equal(x.isErrAnd((n) => n === 10), false);
-   *
-   * const x = Err(10);
-   * assert.equal(x.isErrAnd((n) => n === 10), true);
-   * ```
-   */
-  async isErrAndAsync(
+  isErrAnd(this: Result<T, E>, f: (err: E) => boolean): boolean;
+  isErrAnd(
     this: Result<T, E>,
     f: (err: E) => Promise<boolean>
-  ): Promise<boolean> {
+  ): Promise<boolean>;
+  isErrAnd(
+    this: Result<T, E>,
+    f: (err: E) => boolean | Promise<boolean>
+  ): boolean | Promise<boolean> {
     return !this[T] && f(this[Val] as E);
   }
 
