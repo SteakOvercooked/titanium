@@ -203,10 +203,10 @@ export class ResultType<T, E> {
     * 
     * ```
     * const x = Ok(1);
-    * const y = x.expectErr("value should be cleaned up"); // throws "value should be cleaned up: 1"
+    * const y = x.expectErr("list should be empty"); // throws "list should be empty: 1"
     *
-    * const x = Err("value is undefined");
-    * assert.equal(x.expectErr("value should be cleaned up"), "value is undefined");
+    * const x = Err("list is empty");
+    * assert.equal(x.expectErr("list should be empty"), "list is empty");
     * ```
     */
    expectErr(this: Result<T, E>, msg: string): E {
@@ -219,6 +219,8 @@ export class ResultType<T, E> {
 
    /**
     * Returns the contained `Ok` value if `Ok` and throws the content of `Err` otherwise.
+    * If the contained `E` is `Error`, it is thrown untouched. All other values
+    * are converted to `Error` first before throwing.
     *
     * To avoid throwing, consider `isErr`, `unwrapOr`, `unwrapOrElse` or
     * `match` to handle the `Err` case. To throw a more informative error use
@@ -228,8 +230,11 @@ export class ResultType<T, E> {
     * const x = Ok(1);
     * assert.equal(x.unwrap(), 1);
     *
+    * const x = Err(new Error("missing prop"));
+    * const y = x.unwrap(); // throws "Error: missing prop"
+    * 
     * const x = Err(1);
-    * const y = x.unwrap(); // throws
+    * const y = x.unwrap(); // throws "Error: 1"
     * ```
     */
    unwrap(this: Result<T, E>): T {
@@ -237,21 +242,26 @@ export class ResultType<T, E> {
          return this[Val] as T;
       }
 
-      throw this[Val];
+      throw toError(this[Val]);
    }
 
    /**
     * Returns the contained `Err` value if `Err` and throws the content of `Ok` otherwise.
+    * If the contained `T` is `Error`, it is thrown untouched. All other values
+    * are converted to `Error` first before throwing.
     *
     * To avoid throwing, consider `isOk` or `match` to handle the `Ok` case.
     * To throw a more informative error use `expectErr`.
     *
     * ```
     * const x = Ok(1);
-    * const y = x.unwrap(); // throws
+    * const y = x.unwrapErr(); // throws "Error: 1"
     *
+    * const x = Ok(1);
+    * assert.equal(x.unwrapErr(), 1);
+
     * const x = Err(1);
-    * assert.equal(x.unwrap(), 1);
+    * assert.equal(x.unwrapErr(), 1);
     * ```
     */
    unwrapErr(this: Result<T, E>): E {
@@ -259,7 +269,7 @@ export class ResultType<T, E> {
          return this[Val] as E;
       }
 
-      throw this[Val];
+      throw toError(this[Val]);
    }
 
    /**
@@ -763,18 +773,18 @@ function safe<T, A extends any[]>(
    ...args: A
 ): Result<T, Error> | Promise<Result<T, Error>> {
    if (fn instanceof Promise) {
-      return fn.then((val) => Ok(val), toError);
+      return fn.then((val) => Ok(val), (err) => Err(toError(err)));
    }
 
    try {
       return Ok(fn(...args));
    } catch (err) {
-      return toError(err);
+      return Err(toError(err));
    }
 }
 
-function toError(err: unknown): Err<Error> {
-   return err instanceof Error ? Err(err) : Err(new Error(String(err)));
+function toError(err: unknown): Error {
+   return err instanceof Error ? err : new Error(String(err));
 }
 
 /**

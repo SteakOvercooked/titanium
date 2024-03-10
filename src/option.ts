@@ -152,7 +152,7 @@ class OptionType<T> {
     * assert.equal(x.unwrap(), 1);
     *
     * const x: Option<number> = None;
-    * const y = x.unwrap(); // throws
+    * const y = x.unwrap(); // throws "Error: expected Some, got None"
     * ```
     */
    unwrap(this: Option<T>): T {
@@ -160,7 +160,7 @@ class OptionType<T> {
          return this[Val];
       }
 
-      throw new Error("Expected Some, got None");
+      throw new Error("expected Some, got None");
    }
 
    /**

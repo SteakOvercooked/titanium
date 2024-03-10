@@ -66,12 +66,12 @@ export default function methods() {
 
    it("unwrap", () => {
       expect(Ok(1).unwrap()).to.equal(1);
-      expect(() => Err(1).unwrap()).to.throw(/unwrap/);
+      expect(() => Err(1).unwrap()).to.throw("1");
    });
 
    it("unwrapErr", () => {
       expect(Err(1).unwrapErr()).to.equal(1);
-      expect(() => Ok(1).unwrapErr()).to.throw(/unwrap/);
+      expect(() => Ok(1).unwrapErr()).to.throw("1");
    });
 
    it("unwrapOr", () => {
@@ -141,7 +141,7 @@ export default function methods() {
          Err(1)
             .map((val) => val + 1)
             .unwrap()
-      ).to.throw(/unwrap/);
+      ).to.throw("1");
    });
 
    it("mapErr", () => {
@@ -154,7 +154,7 @@ export default function methods() {
          Ok(1)
             .mapErr((val) => val + 1)
             .unwrapErr()
-      ).to.throw(/unwrap/);
+      ).to.throw("1");
    });
 
    it("mapOr", () => {
@@ -181,7 +181,7 @@ export default function methods() {
       expect(Ok(1).ok().isSome()).to.be.true;
       expect(Ok(1).ok().unwrap()).to.equal(1);
       expect(Err(1).ok().isNone()).to.be.true;
-      expect(() => Err(1).ok().unwrap()).to.throw(/unwrap/);
+      expect(() => Err(1).ok().unwrap()).to.throw("expected Some, got None");
    });
 
    it("inspect", () => {

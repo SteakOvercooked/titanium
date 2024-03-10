@@ -44,7 +44,7 @@ export default function methods() {
 
    it("unwrap", () => {
       expect(Some(1).unwrap()).to.equal(1);
-      expect(() => None.unwrap()).to.throw(/unwrap/);
+      expect(() => None.unwrap()).to.throw("expected Some, got None");
    });
 
    it("unwrapOr", () => {
@@ -110,7 +110,7 @@ export default function methods() {
             .map((val) => val + 1)
             .unwrap()
       ).to.equal(2);
-      expect(() => None.map((val) => val + 1).unwrap()).to.throw(/unwrap/);
+      expect(() => None.map((val) => val + 1).unwrap()).to.throw("expected Some, got None");
    });
 
    it("mapOr", () => {
