@@ -97,13 +97,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   async isOkAndAsync(this: ResultAsync<T, E>, f: (val: T) => Promise<boolean>): Promise<boolean> {
-    const res = await this;
-    
-    if (res.isErr()) {
-      return false;
-    }
-
-    return f(res.unwrap());
+    return this.then((res) => res.isOkAndAsync(f));
   }
 
   /**
@@ -148,13 +142,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   async isErrAndAsync(this: ResultAsync<T, E>, f: (err: E) => Promise<boolean>): Promise<boolean> {
-    const res = await this;
-    
-    if (res.isOk()) {
-      return false;
-    }
-
-    return f(res.unwrapErr());
+    return this.then((res) => res.isErrAndAsync(f));
   }
 
   /**
