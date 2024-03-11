@@ -19,16 +19,14 @@ export default function methods() {
     expect(None.isSome()).to.be.false;
   });
 
-  it("isSomeAnd", () => {
+  it("isSomeAnd", async () => {
     expect(Some(1).isSomeAnd((val) => val === 1)).to.be.true;
     expect(Some(1).isSomeAnd((val) => val > 1)).to.be.false;
     expect(None.isSomeAnd((val) => val === 1)).to.be.false;
-  });
 
-  it("isSomeAndAsync", async () => {
-    expect(await Some(1).isSomeAndAsync(async (val) => val === 1)).to.be.true;
-    expect(await Some(1).isSomeAndAsync(async (val) => val > 1)).to.be.false;
-    expect(await None.isSomeAndAsync(async (val) => val === 1)).to.be.false;
+    expect(await Some(1).isSomeAnd(async (val) => val === 1)).to.be.true;
+    expect(await Some(1).isSomeAnd(async (val) => val > 1)).to.be.false;
+    expect(await None.isSomeAnd(async (val) => val === 1)).to.be.false;
   });
 
   it("isNone", () => {
@@ -64,9 +62,12 @@ export default function methods() {
     expect(AsOpt(None).unwrapOr(2)).to.equal(2);
   });
 
-  it("unwrapOrElse", () => {
+  it("unwrapOrElse", async () => {
     expect(Some(1).unwrapOrElse(() => 2)).to.equal(1);
     expect(AsOpt(None).unwrapOrElse(() => 2)).to.equal(2);
+
+    expect(await Some(1).unwrapOrElse(async () => 2)).to.equal(1);
+    expect(await AsOpt(None).unwrapOrElse(async () => 2)).to.equal(2);
   });
 
   it("unwrapUnchecked", () => {

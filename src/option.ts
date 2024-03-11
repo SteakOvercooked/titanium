@@ -75,25 +75,12 @@ class OptionType<T> {
    * assert.equal(x.Is(), false);
    * ```
    */
-  isSomeAnd(this: Option<T>, f: (val: T) => boolean): this is Some<T> {
-    return this[T] && f(this[Val]);
-  }
-
-  /**
-   * Returns true if the Option is `Some` and acts as a type guard.
-   *
-   * ```
-   * const x = Some(10);
-   * assert.equal(x.Is(), true);
-   *
-   * const x: Option<number> = None;
-   * assert.equal(x.Is(), false);
-   * ```
-   */
-  async isSomeAndAsync(
+  isSomeAnd(this: Option<T>, f: (val: T) => boolean): boolean;
+  isSomeAnd(this: Option<T>, f: (val: T) => Promise<boolean>): Promise<boolean>;
+  isSomeAnd(
     this: Option<T>,
-    f: (val: T) => Promise<boolean>
-  ): Promise<boolean> {
+    f: (val: T) => boolean | Promise<boolean>
+  ): boolean | Promise<boolean> {
     return this[T] && f(this[Val]);
   }
 
@@ -257,22 +244,9 @@ class OptionType<T> {
    * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
    * ```
    */
-  unwrapOrElse(this: Option<T>, f: () => T): T {
-    return this[T] ? this[Val] : f();
-  }
-
-  /**
-   * Returns the contained `Some` value or computes it from a function.
-   *
-   * ```
-   * const x = Some(10);
-   * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
-   *
-   * const x: Option<number> = None;
-   * assert.equal(x.unwrapOrElse(() => 1 + 1), 2);
-   * ```
-   */
-  async unwrapOrElseAsync(this: Option<T>, f: () => Promise<T>): Promise<T> {
+  unwrapOrElse(this: Option<T>, f: () => T): T;
+  unwrapOrElse(this: Option<T>, f: () => Promise<T>): Promise<T>;
+  unwrapOrElse(this: Option<T>, f: () => T | Promise<T>): T | Promise<T> {
     return this[T] ? this[Val] : f();
   }
 
