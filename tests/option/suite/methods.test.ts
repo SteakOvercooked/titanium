@@ -128,12 +128,15 @@ export default function methods() {
     );
   });
 
-  it("mapOr", () => {
+  it("mapOr", async () => {
     expect(Some(1).mapOr(3, (val) => val + 1)).to.equal(2);
     expect(None.mapOr(3, (val) => val + 1)).to.equal(3);
+
+    expect(await Some(1).mapOr(3, async (val) => val + 1)).to.equal(2);
+    expect(await None.mapOr(3, async (val) => val + 1)).to.equal(3);
   });
 
-  it("mapOrElse", () => {
+  it("mapOrElse", async () => {
     expect(
       Some(1).mapOrElse(
         () => 3,
@@ -144,6 +147,19 @@ export default function methods() {
       None.mapOrElse(
         () => 3,
         (val) => val + 1
+      )
+    ).to.equal(3);
+
+    expect(
+      await Some(1).mapOrElse(
+        async () => 3,
+        async (val) => val + 1
+      )
+    ).to.equal(2);
+    expect(
+      await None.mapOrElse(
+        async () => 3,
+        async (val) => val + 1
       )
     ).to.equal(3);
   });

@@ -496,40 +496,17 @@ class OptionType<T> {
    * assert.equal(xmap.unwrap(), 1);
    * ```
    */
-  mapOr<U>(this: Option<T>, def: U, f: (val: T) => U): U {
+  mapOr<U>(this: Option<T>, def: U, f: (val: T) => U): U;
+  mapOr<U>(this: Option<T>, def: U, f: (val: T) => Promise<U>): Promise<U>;
+  mapOr<U>(
+    this: Option<T>,
+    def: U,
+    f: (val: T) => U | Promise<U>
+  ): U | Promise<U> {
     return this[T] ? f(this[Val]) : def;
   }
 
   /**
-   * Returns the provided default if `None`, otherwise calls `f` with the
-   * `Some` value and returns the result.
-   *
-   * The provided default is eagerly evaluated. If you are passing the result
-   * of a function call, consider `mapOrElse`, which is lazily evaluated.
-   *
-   * ```
-   * const x = Some(10);
-   * const xmap = x.mapOr(1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x: Option<number> = None;
-   * const xmap = x.mapOr(1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 1);
-   * ```
-   */
-  mapAsyncOr<U>(
-    this: Option<T>,
-    def: U,
-    f: (val: T) => Promise<U>
-  ): Promise<U> {
-    if (!this[T]) {
-      return Promise.resolve(def);
-    }
-
-    return f(this[Val]);
-  }
-
-  /**
    * Computes a default return value if `None`, otherwise calls `f` with the
    * `Some` value and returns the result.
    *
@@ -542,78 +519,23 @@ class OptionType<T> {
    * assert.equal(xmap.unwrap(), 2);
    * ```
    */
-  mapOrElse<U>(this: Option<T>, def: () => U, f: (val: T) => U): U {
-    return this[T] ? f(this[Val]) : def();
-  }
-
-  /**
-   * Computes a default return value if `None`, otherwise calls `f` with the
-   * `Some` value and returns the result.
-   *
-   * const x = Some(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x: Option<number> = None;
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  mapAsyncOrElse<U>(
-    this: Option<T>,
-    def: () => U,
-    f: (val: T) => Promise<U>
-  ): Promise<U> {
-    if (!this[T]) {
-      return Promise.resolve(def());
-    }
-
-    return f(this[Val]);
-  }
-
-  /**
-   * Computes a default return value if `None`, otherwise calls `f` with the
-   * `Some` value and returns the result.
-   *
-   * const x = Some(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x: Option<number> = None;
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  mapOrElseAsync<U>(
+  mapOrElse<U>(this: Option<T>, def: () => U, f: (val: T) => U): U;
+  mapOrElse<U>(
     this: Option<T>,
     def: () => Promise<U>,
     f: (val: T) => U
-  ): Promise<U> {
-    if (this[T]) {
-      return Promise.resolve(f(this[Val]));
-    }
-
-    return def();
-  }
-
-  /**
-   * Computes a default return value if `None`, otherwise calls `f` with the
-   * `Some` value and returns the result.
-   *
-   * const x = Some(10);
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 11);
-   *
-   * const x: Option<number> = None;
-   * const xmap = x.mapOrElse(() => 1 + 1, (n) => n + 1);
-   * assert.equal(xmap.unwrap(), 2);
-   * ```
-   */
-  mapAsyncOrElseAsync<U>(
+  ): Promise<U>;
+  mapOrElse<U>(
+    this: Option<T>,
+    def: () => U,
+    f: (val: T) => Promise<U>
+  ): Promise<U>;
+  mapOrElse<U>(
     this: Option<T>,
     def: () => Promise<U>,
     f: (val: T) => Promise<U>
-  ): Promise<U> {
+  ): Promise<U>;
+  mapOrElse<U>(this: Option<T>, def: () => U, f: (val: T) => U): U {
     return this[T] ? f(this[Val]) : def();
   }
 
