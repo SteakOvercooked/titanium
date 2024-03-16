@@ -257,8 +257,8 @@ export default function methods() {
     expect(await someOpt.unwrap()).to.equal(1);
 
     const noneOpt = None.okOrElseAsync(async () => "err");
-    expect(noneOpt.isErr()).to.be.true;
-    expect(noneOpt.unwrapErr()).to.equal("err");
+    expect(await noneOpt.isErr()).to.be.true;
+    expect(await noneOpt.unwrapErr()).to.equal("err");
   });
 
   it("inspect", () => {
