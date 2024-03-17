@@ -76,11 +76,15 @@ export default function methods() {
     expect(await toAsync(Err(1)).isErrAnd((val) => val === 1)).to.be.true;
   });
 
-  it("filter", () => {
+  it("filter", async () => {
     const lessThan5 = (x: number) => x < 5;
     expect(Ok(1).filter(lessThan5).unwrap()).to.equal(1);
     expect(Ok(10).filter(lessThan5).isNone()).to.be.true;
     expect(Err(1).filter(lessThan5).isNone()).to.be.true;
+
+    expect(await toAsync(Ok(1)).filter(lessThan5).unwrap()).to.equal(1);
+    expect(await toAsync(Ok(10)).filter(lessThan5).isNone()).to.be.true;
+    expect(await toAsync(Err(1)).filter(lessThan5).isNone()).to.be.true;
   });
 
   it("filterAsync", async () => {
@@ -88,6 +92,10 @@ export default function methods() {
     expect(await Ok(1).filterAsync(lessThan5).unwrap()).to.equal(1);
     expect(await Ok(10).filterAsync(lessThan5).isNone()).to.be.true;
     expect(await Err(1).filterAsync(lessThan5).isNone()).to.be.true;
+
+    expect(await toAsync(Ok(1)).filterAsync(lessThan5).unwrap()).to.equal(1);
+    expect(await toAsync(Ok(10)).filterAsync(lessThan5).isNone()).to.be.true;
+    expect(await toAsync(Err(1)).filterAsync(lessThan5).isNone()).to.be.true;
   });
 
   it("flatten", () => {
@@ -96,29 +104,64 @@ export default function methods() {
     expect(Err(1).flatten().unwrapErr()).to.equal(1);
   });
 
-  it("expect", () => {
+  it("expect", async () => {
     expect(Ok(1).expect("test")).to.equal(1);
     expect(() => Err(1).expect("test")).to.throw("test: 1");
+
+    expect(await toAsync(Ok(1)).expect("test")).to.equal(1);
+    await toAsync(Err(1))
+      .expect("test")
+      .catch((err) => {
+        expect(err).instanceOf(Error);
+        expect(err.message).to.equal("test: 1");
+      });
   });
 
-  it("expectErr", () => {
+  it("expectErr", async () => {
     expect(Err(1).expectErr("test")).to.equal(1);
     expect(() => Ok(1).expectErr("test")).to.throw("test: 1");
+
+    expect(await toAsync(Err(1)).expectErr("test")).to.equal(1);
+    await toAsync(Ok(1))
+      .expectErr("test")
+      .catch((err) => {
+        expect(err).instanceOf(Error);
+        expect(err.message).to.equal("test: 1");
+      });
   });
 
-  it("unwrap", () => {
+  it("unwrap", async () => {
     expect(Ok(1).unwrap()).to.equal(1);
     expect(() => Err(1).unwrap()).to.throw("1");
+
+    expect(await toAsync(Ok(1)).unwrap()).to.equal(1);
+    await toAsync(Err(1))
+      .unwrap()
+      .catch((err) => {
+        expect(err).instanceOf(Error);
+        expect(err.message).to.equal("1");
+      });
   });
 
-  it("unwrapErr", () => {
+  it("unwrapErr", async () => {
     expect(Err(1).unwrapErr()).to.equal(1);
     expect(() => Ok(1).unwrapErr()).to.throw("1");
+
+    expect(await toAsync(Err(1)).unwrapErr()).to.equal(1);
+    await toAsync(Ok(1))
+      .unwrapErr()
+      .catch((err) => {
+        expect(err).instanceOf(Error);
+        expect(err.message).to.equal("1");
+      });
   });
 
-  it("unwrapOr", () => {
+  it("unwrapOr", async () => {
     expect(Ok(1).unwrapOr(2)).to.equal(1);
     expect(asRes(Err(1)).unwrapOr(2)).to.equal(2);
+
+    expect(await toAsync(Ok(1)).unwrapOr(2)).to.equal(1);
+    expect(await toAsync(asRes(Err(1))).unwrapOr(2)).to.equal(2);
   });
 
   it("unwrapOrElse", async () => {
@@ -127,11 +170,17 @@ export default function methods() {
 
     expect(await Ok(1).unwrapOrElse(async () => 2)).to.equal(1);
     expect(await asRes(Err(1)).unwrapOrElse(async () => 2)).to.equal(2);
+
+    expect(await toAsync(Ok(1)).unwrapOrElse(() => 2)).to.equal(1);
+    expect(await toAsync(asRes(Err(1))).unwrapOrElse(() => 2)).to.equal(2);
   });
 
-  it("unwrapUnchecked", () => {
+  it("unwrapUnchecked", async () => {
     expect(Ok(1).unwrapUnchecked()).to.equal(1);
     expect(Err(1).unwrapUnchecked()).to.equal(1);
+
+    expect(await toAsync(Ok(1)).unwrapUnchecked()).to.equal(1);
+    expect(await toAsync(Err(1)).unwrapUnchecked()).to.equal(1);
   });
 
   it("or", () => {
