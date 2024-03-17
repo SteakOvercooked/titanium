@@ -372,7 +372,7 @@ export default function methods() {
     ).to.equal("num 2");
   });
 
-  it("map", () => {
+  it("map", async () => {
     expect(
       Ok(1)
         .map((val) => val + 1)
@@ -383,6 +383,19 @@ export default function methods() {
         .map((val) => val + 1)
         .unwrap()
     ).to.throw("1");
+
+    expect(
+      await toAsync(Ok(1))
+        .map((val) => val + 1)
+        .unwrap()
+    ).to.equal(2);
+    await toAsync(Err(1))
+      .map((val) => val + 1)
+      .unwrap()
+      .catch((err) => {
+        expect(err).instanceOf(Error);
+        expect(err.message).to.equal("1");
+      });
   });
 
   it("mapAsync", async () => {
@@ -396,9 +409,20 @@ export default function methods() {
         .mapAsync(async (val) => val + 1)
         .unwrapErr()
     ).to.equal(1);
+
+    expect(
+      await toAsync(Ok(1))
+        .mapAsync(async (val) => val + 1)
+        .unwrap()
+    ).to.equal(2);
+    expect(
+      await toAsync(Err(1))
+        .mapAsync(async (val) => val + 1)
+        .unwrapErr()
+    ).to.equal(1);
   });
 
-  it("mapErr", () => {
+  it("mapErr", async () => {
     expect(
       Err(1)
         .mapErr((val) => val + 1)
@@ -409,6 +433,19 @@ export default function methods() {
         .mapErr((val) => val + 1)
         .unwrapErr()
     ).to.throw("1");
+
+    expect(
+      await toAsync(Err(1))
+        .mapErr((val) => val + 1)
+        .unwrapErr()
+    ).to.equal(2);
+    await toAsync(Ok(1))
+      .mapErr((val) => val + 1)
+      .unwrapErr()
+      .catch((err) => {
+        expect(err).instanceOf(Error);
+        expect(err.message).to.equal("1");
+      });
   });
 
   it("mapErrAsync", async () => {
@@ -422,6 +459,17 @@ export default function methods() {
         .mapErrAsync(async (val) => val + 1)
         .unwrap()
     ).to.equal(1);
+
+    expect(
+      await toAsync(Err(1))
+        .mapErrAsync(async (val) => val + 1)
+        .unwrapErr()
+    ).to.equal(2);
+    expect(
+      await toAsync(Ok(1))
+        .mapErrAsync(async (val) => val + 1)
+        .unwrap()
+    ).to.equal(1);
   });
 
   it("mapOr", async () => {
@@ -430,6 +478,9 @@ export default function methods() {
 
     expect(await Ok(1).mapOr(3, async (val) => val + 1)).to.equal(2);
     expect(await Err(1).mapOr(3, async (val) => val + 1)).to.equal(3);
+
+    expect(await toAsync(Ok(1)).mapOr(3, (val) => val + 1)).to.equal(2);
+    expect(await toAsync(Err(1)).mapOr(3, (val) => val + 1)).to.equal(3);
   });
 
   it("mapOrElse", async () => {
@@ -484,29 +535,74 @@ export default function methods() {
         async (val) => val + 1
       )
     ).to.equal(3);
+
+    expect(
+      await toAsync(Ok(1)).mapOrElse(
+        () => 3,
+        (val) => val + 1
+      )
+    ).to.equal(2);
+    expect(
+      await toAsync(Err(1)).mapOrElse(
+        (err) => err + 2,
+        (val) => val + 1
+      )
+    ).to.equal(3);
   });
 
-  it("ok", () => {
-    expect(Ok(1).ok().isSome()).to.be.true;
-    expect(Ok(1).ok().unwrap()).to.equal(1);
-    expect(Err(1).ok().isNone()).to.be.true;
-    expect(() => Err(1).ok().unwrap()).to.throw("expected Some, got None");
+  it("ok", async () => {
+    const some = Ok(1).ok();
+    expect(some.isSome()).to.be.true;
+    expect(some.unwrap()).to.equal(1);
+    const none = Err(1).ok();
+    expect(none.isNone()).to.be.true;
+    expect(() => none.unwrap()).to.throw("expected Some, got None");
+
+    const asyncSome = toAsync(Ok(1)).ok();
+    expect(await asyncSome.isSome()).to.be.true;
+    expect(await asyncSome.unwrap()).to.equal(1);
+    const asyncNone = toAsync(Err(1)).ok();
+    expect(await asyncNone.isNone()).to.be.true;
+    expect(
+      await asyncNone.unwrap().catch((err) => {
+        expect(err).instanceOf(Error);
+        expect(err.message).to.equal("expected Some, got None");
+      })
+    );
   });
 
-  it("inspect", () => {
+  it("inspect", async () => {
     const fOk = sinon.fake();
     const fErr = sinon.fake();
+
     Ok(1).inspect(fOk);
     Err(1).inspect(fErr);
     expect(fOk.called).to.be.true;
     expect(fErr.called).to.be.false;
+
+    fOk.resetHistory();
+    fErr.resetHistory();
+
+    await toAsync(Ok(1)).inspect(fOk);
+    await toAsync(Err(1)).inspect(fErr);
+    expect(fOk.called).to.be.true;
+    expect(fErr.called).to.be.false;
   });
 
-  it("inspectErr", () => {
+  it("inspectErr", async () => {
     const fOk = sinon.fake();
     const fErr = sinon.fake();
+
     Ok(1).inspectErr(fOk);
     Err(1).inspectErr(fErr);
+    expect(fOk.called).to.be.false;
+    expect(fErr.called).to.be.true;
+
+    fOk.resetHistory();
+    fErr.resetHistory();
+
+    await toAsync(Ok(1)).inspectErr(fOk);
+    await toAsync(Err(1)).inspectErr(fErr);
     expect(fOk.called).to.be.false;
     expect(fErr.called).to.be.true;
   });

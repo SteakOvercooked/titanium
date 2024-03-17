@@ -1407,7 +1407,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   inspect(this: ResultAsync<T, E>, f: (val: T) => void): ResultAsync<T, E> {
-    this.then((res) => res.inspect(f));
+    this.then((res) => res.inspect(f)).catch(() => undefined);
     return this;
   }
 
@@ -1423,7 +1423,7 @@ export class ResultTypeAsync<T, E> {
    * ```
    */
   inspectErr(this: ResultAsync<T, E>, f: (err: E) => void): ResultAsync<T, E> {
-    this.then((res) => res.inspectErr(f));
+    this.then((res) => res.inspectErr(f)).catch(() => undefined);
     return this;
   }
 }
