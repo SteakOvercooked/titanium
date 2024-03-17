@@ -183,18 +183,32 @@ export default function methods() {
     expect(await toAsync(Err(1)).unwrapUnchecked()).to.equal(1);
   });
 
-  it("or", () => {
+  it("or", async () => {
     expect(Ok(1).or(Ok(2)).unwrap()).to.equal(1);
     expect(asRes(Err(1)).or(Ok(2)).unwrap()).to.equal(2);
+
+    expect(await toAsync(Ok(1)).or(Ok(2)).unwrap()).to.equal(1);
+    expect(
+      await toAsync(asRes(Err(1)))
+        .or(Ok(2))
+        .unwrap()
+    ).to.equal(2);
   });
 
   it("orAsync", async () => {
-    const resb = Ok(2).mapAsync(async (val) => val * 2);
-    expect(await Ok(1).orAsync(resb).unwrap()).to.equal(1);
-    expect(await asRes(Err(1)).orAsync(resb).unwrap()).to.equal(4);
+    expect(
+      await Ok(1)
+        .orAsync(toAsync(Ok(2)))
+        .unwrap()
+    ).to.equal(1);
+    expect(
+      await toAsync(asRes(Err(1)))
+        .orAsync(toAsync(Ok(2)))
+        .unwrap()
+    ).to.equal(2);
   });
 
-  it("orElse", () => {
+  it("orElse", async () => {
     expect(
       Ok(1)
         .orElse(() => Ok(2))
@@ -202,6 +216,17 @@ export default function methods() {
     ).to.equal(1);
     expect(
       Err(2)
+        .orElse((e) => Err(`err ${e}`))
+        .unwrapErr()
+    ).to.equal("err 2");
+
+    expect(
+      await toAsync(Ok(1))
+        .orElse(() => Ok(2))
+        .unwrap()
+    ).to.equal(1);
+    expect(
+      await toAsync(Err(2))
         .orElse((e) => Err(`err ${e}`))
         .unwrapErr()
     ).to.equal("err 2");
@@ -218,23 +243,68 @@ export default function methods() {
         .orElseAsync(async (e) => Err(`err ${e}`))
         .unwrapErr()
     ).to.equal("err 2");
+
+    expect(
+      await toAsync(Ok(1))
+        .orElseAsync(async () => Ok(2))
+        .unwrap()
+    ).to.equal(1);
+    expect(
+      await toAsync(Err(2))
+        .orElseAsync(async (e) => Err(`err ${e}`))
+        .unwrapErr()
+    ).to.equal("err 2");
   });
 
-  it("and", () => {
+  it("and", async () => {
     expect(asRes(Ok(1)).and(Err(2)).isErr()).to.be.true;
     expect(Err(1).and(Ok(2)).isErr()).to.be.true;
     expect(Ok(1).and(Ok("two")).unwrap()).to.equal("two");
+
+    expect(
+      await toAsync(asRes(Ok(1)))
+        .and(Err(2))
+        .isErr()
+    ).to.be.true;
+    expect(await toAsync(Err(1)).and(Ok(2)).isErr()).to.be.true;
+    expect(await toAsync(Ok(1)).and(Ok("two")).unwrap()).to.equal("two");
   });
 
   it("andAsync", async () => {
-    const errb = Err(2).mapErrAsync(async (err) => err * 2);
-    expect(await asRes(Ok(1)).andAsync(errb).isErr()).to.be.true;
-    const okb = Ok(2).mapAsync(async (val) => val * 2);
-    expect(await Err(1).andAsync(okb).isErr()).to.be.true;
-    expect(await Ok(1).andAsync(okb).unwrap()).to.equal(4);
+    expect(
+      await asRes(Ok(1))
+        .andAsync(toAsync(Err(2)))
+        .isErr()
+    ).to.be.true;
+    expect(
+      await Err(1)
+        .andAsync(toAsync(Ok(2)))
+        .isErr()
+    ).to.be.true;
+    expect(
+      await Ok(1)
+        .andAsync(toAsync(Ok(2)))
+        .unwrap()
+    ).to.equal(2);
+
+    expect(
+      await toAsync(asRes(Ok(1)))
+        .andAsync(toAsync(Err(2)))
+        .isErr()
+    ).to.be.true;
+    expect(
+      await toAsync(Err(1))
+        .andAsync(toAsync(Ok(2)))
+        .isErr()
+    ).to.be.true;
+    expect(
+      await toAsync(Ok(1))
+        .andAsync(toAsync(Ok(2)))
+        .unwrap()
+    ).to.equal(2);
   });
 
-  it("andThen", () => {
+  it("andThen", async () => {
     expect(
       asRes(Ok(1))
         .andThen(() => Err(1))
@@ -247,6 +317,22 @@ export default function methods() {
     ).to.be.true;
     expect(
       Ok(1)
+        .andThen((val) => Ok(`num ${val + 1}`))
+        .unwrap()
+    ).to.equal("num 2");
+
+    expect(
+      await toAsync(asRes(Ok(1)))
+        .andThen(() => Err(1))
+        .isErr()
+    ).to.be.true;
+    expect(
+      await toAsync(Err(1))
+        .andThen(() => Ok(2))
+        .isErr()
+    ).to.be.true;
+    expect(
+      await toAsync(Ok(1))
         .andThen((val) => Ok(`num ${val + 1}`))
         .unwrap()
     ).to.equal("num 2");
@@ -265,6 +351,22 @@ export default function methods() {
     ).to.be.true;
     expect(
       await Ok(1)
+        .andThenAsync(async (val) => Ok(`num ${val + 1}`))
+        .unwrap()
+    ).to.equal("num 2");
+
+    expect(
+      await toAsync(asRes(Ok(1)))
+        .andThenAsync(async () => Err(1))
+        .isErr()
+    ).to.be.true;
+    expect(
+      await toAsync(Err(1))
+        .andThenAsync(async () => Ok(2))
+        .isErr()
+    ).to.be.true;
+    expect(
+      await toAsync(Ok(1))
         .andThenAsync(async (val) => Ok(`num ${val + 1}`))
         .unwrap()
     ).to.equal("num 2");
