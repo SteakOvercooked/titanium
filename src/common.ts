@@ -13,9 +13,11 @@ export const EmptyArray = Object.freeze([] as any[]);
 
 export type FalseyValues = false | null | undefined | 0 | 0n | "";
 export function isTruthy(val: unknown): boolean {
-   return val instanceof Date ? val.getTime() === val.getTime() : !!val;
+  return val instanceof Date ? val.getTime() === val.getTime() : !!val;
 }
 
 export type IterType<T> = T extends { [Symbol.iterator](): infer I }
-   ? I
-   : unknown;
+  ? I
+  : unknown;
+
+export type Sync<T> = T extends PromiseLike<any> ? never : T;
