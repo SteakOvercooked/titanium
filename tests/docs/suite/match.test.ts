@@ -1,11 +1,7 @@
 import { assert } from "chai";
 import {
    Option,
-   Some,
-   None,
    Result,
-   Ok,
-   Err,
    match,
    Fn,
    _,
@@ -25,7 +21,7 @@ export default function matchDocs() {
 }
 
 function mappedMatchBasic() {
-   const num = Option(10);
+   const num = Option.some(10);
    const res = match(num, {
       Some: (n) => n + 1,
       None: () => 0,
@@ -42,9 +38,9 @@ function mappedMatchNested() {
       });
    }
 
-   assert.equal(nested(Ok(Some(10))), "found 10");
-   assert.equal(nested(Ok(None)), "nothing");
-   assert.equal(nested(Err("Not a number")), "nothing");
+   assert.equal(nested(Result.ok(Option.some(10))), "found 10");
+   assert.equal(nested(Result.ok(Option.none)), "nothing");
+   assert.equal(nested(Result.err("Not a number")), "nothing");
 }
 
 function combinedMatch() {
@@ -59,11 +55,11 @@ function combinedMatch() {
       });
    }
 
-   assert.equal(matchNum(Some(5)), "5");
-   assert.equal(matchNum(Some(7)), "< 10");
-   assert.equal(matchNum(Some(25)), "> 20");
-   assert.equal(matchNum(Some(15)), "none or not matched");
-   assert.equal(matchNum(None), "none or not matched");
+   assert.equal(matchNum(Option.some(5)), "5");
+   assert.equal(matchNum(Option.some(7)), "< 10");
+   assert.equal(matchNum(Option.some(25)), "> 20");
+   assert.equal(matchNum(Option.some(15)), "none or not matched");
+   assert.equal(matchNum(Option.none), "none or not matched");
 }
 
 function chainedMatchPrimitive() {
@@ -144,17 +140,17 @@ function chainedMatchMonad() {
    type NumberMonad = Option<number> | Result<number, number>;
    function matchMonad(val: NumberMonad): string {
       return match(val, [
-         [Some(1), "Some"],
-         [Ok(1), "Ok"],
-         [Err(1), "Err"],
+         [Option.some(1), "Some"],
+         [Result.ok(1), "Ok"],
+         [Result.err(1), "Err"],
          () => "None",
       ]);
    }
 
-   assert.equal(matchMonad(Some(1)), "Some");
-   assert.equal(matchMonad(Ok(1)), "Ok");
-   assert.equal(matchMonad(Err(1)), "Err");
-   assert.equal(matchMonad(None), "None");
+   assert.equal(matchMonad(Option.some(1)), "Some");
+   assert.equal(matchMonad(Result.ok(1)), "Ok");
+   assert.equal(matchMonad(Result.err(1)), "Err");
+   assert.equal(matchMonad(Option.none), "None");
 }
 
 function chainedMatchFn() {
@@ -187,8 +183,8 @@ function compileMappedMatch() {
       None: () => "got none",
    });
 
-   assert.equal(matchSome(Some(1)), "got some 1");
-   assert.equal(matchSome(None), "got none");
+   assert.equal(matchSome(Option.some(1)), "got some 1");
+   assert.equal(matchSome(Option.none), "got none");
 }
 
 function compileChainedMatch() {
@@ -212,7 +208,7 @@ function compileNestedMatch() {
       _: () => "default",
    });
 
-   assert.equal(matchResOpt(Ok(Some("test"))), "some test");
-   assert.equal(matchResOpt(Ok(None)), "default");
-   assert.equal(matchResOpt(Err(1)), "default");
+   assert.equal(matchResOpt(Result.ok(Option.some("test"))), "some test");
+   assert.equal(matchResOpt(Result.ok(Option.none)), "default");
+   assert.equal(matchResOpt(Result.err(1)), "default");
 }

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Result, Ok, Err } from "../../../src";
+import { Result } from "../../../src";
 
 export default function resultDocs() {
   it("Result", resultMain);
@@ -12,7 +12,7 @@ export default function resultDocs() {
 function resultMain() {
   const users = ["Fry", "Bender"];
   function fetch_user(username: string): Result<string, string> {
-    return users.includes(username) ? Ok(username) : Err("Wha?");
+    return users.includes(username) ? Result.ok(username) : Result.err("Wha?");
   }
 
   function greet(username: string): string {
@@ -74,7 +74,7 @@ async function resultSafePromise() {
 
 function resultAll() {
   function num(val: number): Result<number, string> {
-    return val > 10 ? Ok(val) : Err(`Value ${val} is too low.`);
+    return val > 10 ? Result.ok(val) : Result.err(`Value ${val} is too low.`);
   }
 
   const xyz = Result.all(num(20), num(30), num(40));
@@ -90,7 +90,7 @@ function resultAll() {
 
 function resultAny() {
   function num(val: number): Result<number, string> {
-    return val > 10 ? Ok(val) : Err(`Value ${val} is too low.`);
+    return val > 10 ? Result.ok(val) : Result.err(`Value ${val} is too low.`);
   }
 
   const x = Result.any(num(5), num(20), num(2));

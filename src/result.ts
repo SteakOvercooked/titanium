@@ -5,17 +5,14 @@ import {
   EmptyArray,
   IterType,
   FalseyValues,
-  isTruthy,
   Sync,
 } from "./common";
-import { Option, OptionAsync, OptionTypeAsync, Some, None } from "./option";
+import { Option, OptionAsync, OptionTypeAsync } from "./option";
 
 export type Ok<T> = ResultType<T, never>;
 export type Err<E> = ResultType<never, E>;
 export type Result<T, E> = ResultType<T, E>;
 export type ResultAsync<T, E> = ResultTypeAsync<T, E>;
-
-type From<T> = Exclude<T, Error | FalseyValues>;
 
 type ResultTypes<R> = {
   [K in keyof R]: R[K] extends Result<infer T, any> ? T : never;
@@ -24,6 +21,10 @@ type ResultTypes<R> = {
 type ResultErrors<R> = {
   [K in keyof R]: R[K] extends Result<any, infer U> ? U : never;
 };
+
+function toError(err: unknown): Error {
+  return err instanceof Error ? err : new Error(String(err));
+}
 
 class ResultType<T, E> {
   readonly [T]: boolean;
@@ -45,13 +46,13 @@ class ResultType<T, E> {
    * value must be falsey and defaults to `undefined`.
    *
    * ```
-   * const x = Ok(1);
+   * const x = Result.ok(1);
    * assert.equal(x.into(), 1);
    *
-   * const x = Err(1);
+   * const x = Result.err(1);
    * assert.equal(x.into(), undefined);
    *
-   * const x = Err(1);
+   * const x = Result.err(1);
    * assert.equal(x.into(null), null);
    * ```
    */
@@ -66,10 +67,10 @@ class ResultType<T, E> {
    * otherwise.
    *
    * ```
-   * const x: Result<number, string> = Ok(1);
+   * const x: Result<number, string> = Result.ok(1);
    * assert.deepEqual(x.intoTuple(), [null, 1]);
    *
-   * const x: Result<number, string> = Err("error")
+   * const x: Result<number, string> = Result.err("error")
    * assert.deepEqual(x.intoTuple(), ["error", null]);
    * ```
    */
@@ -81,10 +82,10 @@ class ResultType<T, E> {
    * Returns true if `Ok` and acts as a type guard.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * assert.equal(x.isOk(), true);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * assert.equal(x.isOk(), false);
    * ```
    */
@@ -96,10 +97,10 @@ class ResultType<T, E> {
    * Returns true if `Ok` and the value inside matches a predicate.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * assert.equal(x.isOkAnd((v) => v === 10), true);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * assert.equal(x.isOkAnd((v) => v === 10), false);
    * ```
    */
@@ -111,11 +112,11 @@ class ResultType<T, E> {
    * Returns true if `Ok` and the value inside matches a predicate.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const isOk = x.isOkAndAsync(async (v) => v === 10);
    * assert.equal(await isOk, true);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const isOk = x.isOkAndAsync(async (v) => v === 10);
    * assert.equal(await isOk, false);
    * ```
@@ -131,10 +132,10 @@ class ResultType<T, E> {
    * Returns true if the Result is `Err` and acts as a type guard.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * assert.equal(x.isErr(), false);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * assert.equal(x.isErr(), true);
    * ```
    */
@@ -146,10 +147,10 @@ class ResultType<T, E> {
    * Returns true if the Result is `Err` and the value inside of it matches a predicate.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * assert.equal(x.isErrAnd((e) => e === 10), false);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * assert.equal(x.isErrAnd((e) => e === 10), true);
    * ```
    */
@@ -161,11 +162,11 @@ class ResultType<T, E> {
    * Returns true if the Result is `Err` and the value inside of it matches a predicate.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const isErr = x.isErrAndAsync(async (e) => e === 10);
    * assert.equal(await isErr, false);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const isErr = x.isErrAndAsync(async (e) => e === 10);
    * assert.equal(await isErr, true);
    * ```
@@ -184,18 +185,18 @@ class ResultType<T, E> {
    * For more advanced filtering, consider `match`.
    *
    * ```
-   * const x = Ok(1);
+   * const x = Result.ok(1);
    * assert.equal(x.filter((v) => v < 5).unwrap(), 1);
    *
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * assert.equal(x.filter((v) => v < 5).isNone(), true);
    *
-   * const x = Err(1);
+   * const x = Result.err(1);
    * assert.equal(x.filter((v) => v < 5).isNone(), true);
    * ```
    */
   filter(this: Result<T, E>, f: (val: T) => boolean): Option<T> {
-    return this[T] && f(this[Val] as T) ? Some(this[Val] as T) : None;
+    return this[T] && f(this[Val] as T) ? Option.some(this[Val] as T) : Option.none;
   }
 
   /**
@@ -205,15 +206,15 @@ class ResultType<T, E> {
    * For more advanced filtering, consider `match`.
    *
    * ```
-   * const x = Ok(1);
+   * const x = Result.ok(1);
    * const v = x.filterAsync(async (v) => v < 5).unwrapAsync();
    * assert.equal(await v, 1);
    *
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const isNone = x.filterAsync(async (v) => v < 5).isNoneAsync();
    * assert.equal(await isNone, true);
    *
-   * const x = Err(1);
+   * const x = Result.err(1);
    * const isNone = x.filterAsync(async (v) => v < 5).isNoneAsync();
    * assert.equal(await isNone, true);
    * ```
@@ -223,11 +224,11 @@ class ResultType<T, E> {
     f: (val: T) => Promise<boolean>
   ): OptionAsync<T> {
     if (!this[T]) {
-      return new OptionTypeAsync(Promise.resolve(None));
+      return new OptionTypeAsync(Promise.resolve(Option.none));
     }
 
     return new OptionTypeAsync(
-      f(this[Val] as T).then((valid) => (valid ? Some(this[Val] as T) : None))
+      f(this[Val] as T).then((valid) => (valid ? Option.some(this[Val] as T) : Option.none))
     );
   }
 
@@ -237,13 +238,13 @@ class ResultType<T, E> {
    * ```
    * type NestedResult = Result<Result<string, number>, boolean>;
    *
-   * const x: NestedResult = Ok(Ok(1));
+   * const x: NestedResult = Result.ok(Result.ok(1));
    * assert.equal(x.flatten().unwrap(), 1);
    *
-   * const x: NestedResult = Ok(Err(1));
+   * const x: NestedResult = Result.ok(Result.err(1));
    * assert.equal(x.flatten().unwrapErr(), 1);
    *
-   * const x: NestedResult = Err(false);
+   * const x: NestedResult = Result.err(false);
    * assert.equal(x.flatten().unwrapErr(), false);
    * ```
    */
@@ -258,16 +259,16 @@ class ResultType<T, E> {
    * type NestedResult = Result<ResultAsync<string, Error>, boolean>;
    *
    * const nested = Result.safe(Promise.resolve(1));
-   * const x: NestedResult = Ok(nested);
+   * const x: NestedResult = Result.ok(nested);
    * await x.flattenAsync().unwrapAsync()
    *  .then((v) => assert.equal(v, 1));
    *
    * const nested = Result.safe(Promise.reject(new Error("1")));
-   * const x: NestedResult = Ok(nested);
+   * const x: NestedResult = Result.ok(nested);
    * await x.flattenAsync().unwrapErrAsync()
    *  .then((e) => assert.equal(e.message, "1"));
    *
-   * const x: NestedResult = Err(false);
+   * const x: NestedResult = Result.err(false);
    * await x.flattenAsync().unwrapErrAsync()
    *  .then((e) => assert.equal(e, false));
    * ```
@@ -288,10 +289,10 @@ class ResultType<T, E> {
    * `match` to handle the `Err` case.
    *
    * ```
-   * const x: Result<number, string> = Ok(1);
+   * const x: Result<number, string> = Result.ok(1);
    * assert.equal(x.expect(() => "must be a number"), 1);
    *
-   * const x = Err("something went wrong");
+   * const x = Result.err("something went wrong");
    * const y = x.expect((e) => `must be a number, but ${e}`); // throws "Error: must be a number, but something went wrong"
    * ```
    */
@@ -310,10 +311,10 @@ class ResultType<T, E> {
    * To avoid throwing, consider `isOk` or `match` to handle the `Ok` case.
    *
    * ```
-   * const x = Ok(1);
+   * const x = Result.ok(1);
    * const y = x.expectErr((v) => `array length should be 0, got ${v}`); // throws "Error: array length should be 0, got 1"
    *
-   * const x = Err("array is empty");
+   * const x = Result.err("array is empty");
    * assert.equal(x.expectErr(() => "array length should be 0"), "array is empty");
    * ```
    */
@@ -335,13 +336,13 @@ class ResultType<T, E> {
    * `expect`.
    *
    * ```
-   * const x = Ok(1);
+   * const x = Result.ok(1);
    * assert.equal(x.unwrap(), 1);
    *
-   * const x = Err(new Error("missing prop"));
+   * const x = Result.err(new Error("missing prop"));
    * const y = x.unwrap(); // throws "Error: missing prop"
    *
-   * const x = Err(1);
+   * const x = Result.err(1);
    * const y = x.unwrap(); // throws "Error: 1"
    * ```
    */
@@ -362,13 +363,13 @@ class ResultType<T, E> {
    * To throw a more informative error use `expectErr`.
    *
    * ```
-   * const x = Ok(1);
+   * const x = Result.ok(1);
    * const y = x.unwrapErr(); // throws "Error: 1"
    *
-   * const x = Ok(new Error("message"));
+   * const x = Result.ok(new Error("message"));
    * const y = x.unwrapErr(); // throws "Error: message"
 
-   * const x = Err(1);
+   * const x = Result.err(1);
    * assert.equal(x.unwrapErr(), 1);
    * ```
    */
@@ -387,10 +388,10 @@ class ResultType<T, E> {
    * of a function call, consider `unwrapOrElse`, which is lazily evaluated.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * assert.equal(x.unwrapOr(1), 10);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * assert.equal(x.unwrapOr(1), 1);
    * ```
    */
@@ -402,10 +403,10 @@ class ResultType<T, E> {
    * Returns the contained `Ok` value or computes it from a function.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * assert.equal(x.unwrapOrElse(() => 1 + 1), 10);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * assert.equal(x.unwrapOrElse((e) => e + 1), 11);
    * ```
    */
@@ -417,11 +418,11 @@ class ResultType<T, E> {
    * Returns the `Promise` of contained `Ok` value or computes it from a function.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * await x.unwrapOrElseAsync(async () => 1 + 1)
    *  .then((v) => assert.equal(v, 10));
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * await x.unwrapOrElseAsync(async (e) => e + 1)
    *  .then((v) => assert.equal(v, 11));
    * ```
@@ -437,10 +438,10 @@ class ResultType<T, E> {
    * This method should only be used when you are certain that you need it.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * assert.equal(x.unwrapUnchecked(), 10);
    *
-   * const x = Err(20);
+   * const x = Result.err(20);
    * assert.equal(x.unwrapUnchecked(), 20);
    * ```
    */
@@ -455,12 +456,12 @@ class ResultType<T, E> {
    * call, consider `orElse`, which is lazily evaluated.
    *
    * ```
-   * const x = Ok(10);
-   * const xor = x.or(Ok(1));
+   * const x = Result.ok(10);
+   * const xor = x.or(Result.ok(1));
    * assert.equal(xor.unwrap(), 10);
    *
-   * const x = Err(10);
-   * const xor = x.or(Ok(1));
+   * const x = Result.err(10);
+   * const xor = x.or(Result.ok(1));
    * assert.equal(xor.unwrap(), 1);
    * ```
    */
@@ -476,12 +477,12 @@ class ResultType<T, E> {
    *
    * ```
    * const xAsync = Result.safe(Promise.resolve(1));
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xor = x.orAsync(xAsync);
    * await xor.unwrapAsync()
    *  .then((v) => assert.equal(v, 10));
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xor = x.or(xAsync);
    * await xor.unwrapAsync()
    *  .then((v) => assert.equal(v, 1));
@@ -500,16 +501,16 @@ class ResultType<T, E> {
    * mapping `Result<T, E>` to `Result<T, F>`.
    *
    * ```
-   * const x = Ok(10);
-   * const xor = x.orElse(() => Ok(1));
+   * const x = Result.ok(10);
+   * const xor = x.orElse(() => Result.ok(1));
    * assert.equal(xor.unwrap(), 10);
    *
-   * const x = Err(10);
-   * const xor = x.orElse(() => Ok(1));
+   * const x = Result.err(10);
+   * const xor = x.orElse(() => Result.ok(1));
    * assert.equal(xor.unwrap(), 1);
    *
-   * const x = Err(10);
-   * const xor = x.orElse((e) => Err(`val ${e}`));
+   * const x = Result.err(10);
+   * const xor = x.orElse((e) => Result.err(`val ${e}`));
    * assert.equal(xor.unwrapErr(), "val 10");
    * ```
    */
@@ -522,18 +523,18 @@ class ResultType<T, E> {
    * mapping `Result<T, E>` to `ResultAsync<T, F>`.
    *
    * ```
-   * const x = Ok(10);
-   * const xor = x.orElseAsync(async () => Ok(1));
+   * const x = Result.ok(10);
+   * const xor = x.orElseAsync(async () => Result.ok(1));
    * await xor.unwrapAsync()
    *  .then((v) => assert.equal(v, 10));
    *
-   * const x = Err(10);
-   * const xor = x.orElseAsync(async () => Ok(1));
+   * const x = Result.err(10);
+   * const xor = x.orElseAsync(async () => Result.ok(1));
    * await xor.unwrapAsync()
    *  .then((v) => assert.equal(v, 1));
    *
-   * const x = Err(10);
-   * const xor = x.orElseAsync(async (e) => Err(`val ${e}`));
+   * const x = Result.err(10);
+   * const xor = x.orElseAsync(async (e) => Result.err(`val ${e}`));
    * await xor.unwrapErrAsync()
    *  .then((e) => assert.equal(e, "val 10"));
    * ```
@@ -553,16 +554,16 @@ class ResultType<T, E> {
    * Returns itself if the Result is `Err`, otherwise returns `resb`.
    *
    * ```
-   * const x = Ok(10);
-   * const xand = x.and(Ok(1));
+   * const x = Result.ok(10);
+   * const xand = x.and(Result.ok(1));
    * assert.equal(xand.unwrap(), 1);
    *
-   * const x = Err(10);
-   * const xand = x.and(Ok(1));
+   * const x = Result.err(10);
+   * const xand = x.and(Result.ok(1));
    * assert.equal(xand.unwrapErr(), 10);
    *
-   * const x = Ok(10);
-   * const xand = x.and(Err(1));
+   * const x = Result.ok(10);
+   * const xand = x.and(Result.err(1));
    * assert.equal(xand.unwrapErr(), 1);
    * ```
    */
@@ -575,18 +576,18 @@ class ResultType<T, E> {
    *
    * ```
    * const okAsync = Result.safe(Promise.resolve(1));
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xand = x.andAsync(okAsync);
    * await xand.unwrapAsync()
    *   .then((v) => assert.equal(v, 1));
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xand = x.and(okAsync);
    * await xand.unwrapErrAsync()
    *   .then((e) => assert.equal(e, 10));
    *
    * const errAsync = Result.safe(Promise.reject(new Error("404")));
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xand = x.and(errAsync);
    * await xand.unwrapErrAsync()
    *   .then((e) => assert.equal(e.message, "404"));
@@ -605,16 +606,16 @@ class ResultType<T, E> {
    * value and returns the result.
    *
    * ```
-   * const x = Ok(10);
-   * const xand = x.andThen((v) => Ok(v + 1));
+   * const x = Result.ok(10);
+   * const xand = x.andThen((v) => Result.ok(v + 1));
    * assert.equal(xand.unwrap(), 11);
    *
-   * const x = Err(10);
-   * const xand = x.andThen((v) => Ok(v + 1));
+   * const x = Result.err(10);
+   * const xand = x.andThen((v) => Result.ok(v + 1));
    * assert.equal(xand.unwrapErr(), 10);
    *
-   * const x = Ok(10);
-   * const xand = x.andThen(() => Err(1));
+   * const x = Result.ok(10);
+   * const xand = x.andThen(() => Result.err(1));
    * assert.equal(xand.unwrapErr(), 1);
    * ```
    */
@@ -627,18 +628,18 @@ class ResultType<T, E> {
    * value and returns the result.
    *
    * ```
-   * const x = Ok(10);
-   * const xand = x.andThenAsync(async (v) => Ok(v + 1));
+   * const x = Result.ok(10);
+   * const xand = x.andThenAsync(async (v) => Result.ok(v + 1));
    * await xand.unwrapAsync()
    *   .then((v) => assert.equal(v, 11));
    *
-   * const x = Err(10);
-   * const xand = x.andThenAsync(async (v) => Ok(v + 1));
+   * const x = Result.err(10);
+   * const xand = x.andThenAsync(async (v) => Result.ok(v + 1));
    * await xand.unwrapErrAsync()
    *   .then((e) => assert.equal(e, 10));
    *
-   * const x = Ok(10);
-   * const xand = x.andThenAsync(async (v) => Err(v + 1));
+   * const x = Result.ok(10);
+   * const xand = x.andThenAsync(async (v) => Result.err(v + 1));
    * await xand.unwrapErrAsync()
    *   .then((e) => assert.equal(e, 11));
    * ```
@@ -659,7 +660,7 @@ class ResultType<T, E> {
    * `Ok` value.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xmap = x.map((v) => `number ${v}`);
    * assert.equal(xmap.unwrap(), "number 10");
    * ```
@@ -676,7 +677,7 @@ class ResultType<T, E> {
    * `Ok` value.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xmap = x.mapAsync(async (v) => `number ${v}`);
    * await xmap.unwrapAsync()
    *   .then((v) => assert.equal(v, "number 10));
@@ -690,7 +691,7 @@ class ResultType<T, E> {
       return new ResultTypeAsync(Promise.resolve(this as any));
     }
 
-    return new ResultTypeAsync(f(this[Val] as T).then((val) => Ok(val)));
+    return new ResultTypeAsync(f(this[Val] as T).then((val) => ok(val)));
   }
 
   /**
@@ -698,7 +699,7 @@ class ResultType<T, E> {
    * `Err` value.
    *
    * ```
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xmap = x.mapErr((n) => `number ${n}`);
    * assert.equal(xmap.unwrapErr(), "number 10");
    * ```
@@ -715,7 +716,7 @@ class ResultType<T, E> {
    * `Err` value.
    *
    * ```
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xmap = x.mapErrAsync((e) => `number ${e}`);
    * await xmap.unwrapErrAsync()
    *   .then((e) => assert.equal(e, "number 10));
@@ -729,7 +730,7 @@ class ResultType<T, E> {
       return new ResultTypeAsync(Promise.resolve(this as any));
     }
 
-    return new ResultTypeAsync(op(this[Val] as E).then((err) => Err(err)));
+    return new ResultTypeAsync(op(this[Val] as E).then((e) => err(e)));
   }
 
   /**
@@ -740,11 +741,11 @@ class ResultType<T, E> {
    * of a function call, consider `mapOrElse`, which is lazily evaluated.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xmap = x.mapOr(1, (n) => n + 1);
    * assert.equal(xmap, 11);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xmap = x.mapOr(1, (n) => n + 1);
    * assert.equal(xmap, 1);
    * ```
@@ -761,11 +762,11 @@ class ResultType<T, E> {
    * of a function call, consider `mapOrElse`, which is lazily evaluated.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xmap = x.mapOrAsync(1, async (n) => n + 1);
    * assert.equal(await xmap, 11);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xmap = x.mapOrAsync(1, async (n) => n + 1);
    * assert.equal(await xmap, 1);
    * ```
@@ -783,11 +784,11 @@ class ResultType<T, E> {
    * `Ok` value and returns the result.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xmap = x.mapOrElse(() => 1 + 1, (v) => v + 1);
    * assert.equal(xmap, 11);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xmap = x.mapOrElse((e) => e + 1, () => 1 + 1);
    * assert.equal(xmap, 11);
    * ```
@@ -805,11 +806,11 @@ class ResultType<T, E> {
    * `Ok` value and returns the result.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const xmap = x.mapOrElseAsync(() => 1 + 1, async (v) => v + 1);
    * assert.equal(await xmap, 11);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xmap = x.mapOrElseAsync(async (e) => e + 1, () => 1 + 1);
    * assert.equal(await xmap, 11);
    * ```
@@ -838,23 +839,23 @@ class ResultType<T, E> {
   }
 
   /**
-   * Transforms the `Result<T, E>` into an `Option<T>`, mapping `Ok(v)` to
-   * `Some(v)`, discarding any `Err` value and mapping to None.
+   * Transforms the `Result<T, E>` into an `Option<T>`, mapping `Result.ok(v)` to
+   * `Option.some(v)`, discarding any `Err` value and mapping to `Option.none`.
    *
    * ```
-   * const x = Ok(10);
+   * const x = Result.ok(10);
    * const opt = x.ok();
    * assert.equal(x.isSome(), true);
    * assert.equal(x.unwrap(), 10);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const opt = x.ok();
    * assert.equal(x.isNone(), true);
    * const y = x.unwrap(); // throws
    * ```
    */
   ok(this: Result<T, E>): Option<T> {
-    return this[T] ? Some(this[Val] as T) : None;
+    return this[T] ? Option.some(this[Val] as T) : Option.none;
   }
 
   /**
@@ -862,10 +863,10 @@ class ResultType<T, E> {
    *
    * ```
    * // Prints the contained value.
-   * Ok(10).inspect((v) => console.log(v));
+   * Result.ok(10).inspect((v) => console.log(v));
    *
    * // Doesn't produce any output.
-   * Err(10).inspect((v) => console.log(v));
+   * Result.err(10).inspect((v) => console.log(v));
    * ```
    */
   inspect(this: Result<T, E>, f: (val: T) => void): Result<T, E> {
@@ -881,10 +882,10 @@ class ResultType<T, E> {
    *
    * ```
    * // Doesn't produce any output.
-   * Ok(10).inspectErr((e) => console.log(e));
+   * Result.ok(10).inspectErr((e) => console.log(e));
    *
    * // Prints the contained error.
-   * Err(10).inspectErr((e) => console.log(e));
+   * Result.err(10).inspectErr((e) => console.log(e));
    * ```
    */
   inspectErr(this: Result<T, E>, f: (err: E) => void): Result<T, E> {
@@ -1028,17 +1029,17 @@ export class ResultTypeAsync<T, E> {
    * For more advanced filtering, consider `match`.
    *
    * ```
-   * const x = Ok(1);
-   * await x.filterAsync(async (v) => v < 5).unwrapAsync()
-   *   .then((x) => assert.equal(x, 1));
+   * const x = Result.safe(Promise.resolve(1));
+   * const xFiltered = x.filterAsync(async (v) => v < 5).unwrapAsync();
+   * assert.equal(await xFiltered, 1);
    *
-   * const x = Ok(10);
-   * await x.filterAsync(async (v) => v < 5).isNoneAsync()
-   *   .then((isNone) => assert.equal(isNone, true));
+   * const x = Result.safe(Promise.resolve(10));
+   * const isNone = x.filterAsync(async (v) => v < 5).isNoneAsync();
+   * assert.equal(await isNone, true);
    *
-   * const x = Err(1);
-   * await x.filterAsync(async (v) => v < 5).isNoneAsync()
-   *   .then((isNone) => assert.equal(isNone, true));
+   * const x = Result.safe(Promise.reject(1));
+   * const isNone = x.filterAsync(async (v) => v < 5).isNoneAsync();
+   * assert.equal(await isNone, true);
    * ```
    */
   filterAsync(
@@ -1054,10 +1055,10 @@ export class ResultTypeAsync<T, E> {
    * Flatten a nested `ResultAsync<Result<T, E>, F>` to a `ResultAsync<T, E | F>`.
    *
    * ```
-   * const x = Result.safe(Promise.resolve(Ok(1)));
+   * const x = Result.safe(Promise.resolve(Result.ok(1)));
    * assert.equal(await x.flattenAsync().unwrapAsync(), 1);
    *
-   * const x = Result.safe(Promise.resolve(Err(10)));
+   * const x = Result.safe(Promise.resolve(Result.err(10)));
    * assert.equal(await x.flattenAsync().unwrapErrAsync(), 10);
    * ```
    */
@@ -1250,18 +1251,18 @@ export class ResultTypeAsync<T, E> {
    * mapping `ResultAsync<T, E>` to `ResultAsync<T, F>`.
    *
    * ```
-   * const x = Ok(10);
-   * const xor = x.orElseAsync(async () => Ok(1));
+   * const x = Result.ok(10);
+   * const xor = x.orElseAsync(async () => Result.ok(1));
    * await xor.unwrapAsync()
    *  .then((v) => assert.equal(v, 10));
    *
-   * const x = Err(10);
-   * const xor = x.orElseAsync(async () => Ok(1));
+   * const x = Result.err(10);
+   * const xor = x.orElseAsync(async () => Result.ok(1));
    * await xor.unwrapAsync()
    *  .then((v) => assert.equal(v, 1));
    *
-   * const x = Err(10);
-   * const xor = x.orElseAsync(async (e) => Err(`val ${e}`));
+   * const x = Result.err(10);
+   * const xor = x.orElseAsync(async (e) => Result.err(`val ${e}`));
    * await xor.unwrapErrAsync()
    *  .then((e) => assert.equal(e, "val 10"));
    * ```
@@ -1307,15 +1308,15 @@ export class ResultTypeAsync<T, E> {
    *
    * ```
    * const x = Result.safe(Promise.resolve(10));
-   * await x.andThenAsync(async (v) => Ok(v + 1))
+   * await x.andThenAsync(async (v) => Result.ok(v + 1))
    *   .then((v) => assert.equal(v, 11));
    *
    * const x = Result.safe(Promise.reject(10), (e) => e as number);
-   * await x.andThenAsync((v) => Ok(v + 1)).uwrapErrAsync()
+   * await x.andThenAsync((v) => Result.ok(v + 1)).uwrapErrAsync()
    *   .then((e) => assert.equal(e, 10));
    *
    * const x = Result.safe(Promise.resolve(10));
-   * await x.andThenAsync(async (v) => Err(v + 1)).unwrapErrAsync()
+   * await x.andThenAsync(async (v) => Result.err(v + 1)).unwrapErrAsync()
    *   .then((e) => assert.equal(e, 11));
    * ```
    */
@@ -1402,7 +1403,7 @@ export class ResultTypeAsync<T, E> {
    * const xmap = x.mapOrElseAsync(() => 1 + 1, async (v) => v + 1);
    * assert.equal(await xmap, 11);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const xmap = x.mapOrElseAsync(async (e) => e + 1, () => 1 + 1);
    * assert.equal(await xmap, 11);
    * ```
@@ -1422,7 +1423,7 @@ export class ResultTypeAsync<T, E> {
 
   /**
    * Transforms the `ResultAsync<T, E>` into an `OptionAsync<T>`, mapping `Ok(v)` to
-   * `Some(v)`, discarding any `Err` value and mapping to None.
+   * `Option.some(v)`, discarding any `Err` value and mapping to None.
    *
    * ```
    * const x = Result.safe(Promise.resolve(10));
@@ -1430,7 +1431,7 @@ export class ResultTypeAsync<T, E> {
    * assert.equal(await opt.isSomeAsync(), true);
    * assert.equal(await opt.unwrapAsync(), 10);
    *
-   * const x = Err(10);
+   * const x = Result.err(10);
    * const opt = x.okAsync();
    * assert.equal(await x.isNoneAsync(), true);
    * const y = await x.unwrapAsync(); // throws
@@ -1485,9 +1486,9 @@ export class ResultTypeAsync<T, E> {
  * Tests the provided `val` is an Result and acts as a type guard.
  *
  * ```
- * assert.equal(Result.is(Ok(1), true);
- * assert.equal(Result.is(Err(1), true));
- * assert.equal(Result.is(Some(1), false));
+ * assert.equal(Result.is(Result.ok(1), true);
+ * assert.equal(Result.is(Result.err(1), true));
+ * assert.equal(Result.is(Option.some(1), false));
  * ```
  */
 function is(val: unknown): val is Result<unknown, unknown> {
@@ -1498,12 +1499,10 @@ function is(val: unknown): val is Result<unknown, unknown> {
  * A Result represents success, or failure. If we hold a value
  * of type `Result<T, E>`, we know it is either `Ok<T>` or `Err<E>`.
  *
- * As a function, `Result` is an alias for `Result.from`.
- *
  * ```
  * const users = ["Fry", "Bender"];
  * function fetch_user(username: string): Result<string, string> {
- *    return users.includes(username) ? Ok(username) : Err("Wha?");
+ *    return users.includes(username) ? Result.ok(username) : Result.err("Wha?");
  * }
  *
  * function greet(username: string): string {
@@ -1517,24 +1516,15 @@ function is(val: unknown): val is Result<unknown, unknown> {
  * assert.equal(greet("SuperKing"), "Error: Wha?");
  * ```
  */
-export function Result<T>(
-  val: T
-): Result<
-  From<T>,
-  | (T extends Error ? T : never)
-  | (Extract<FalseyValues, T> extends never ? never : null)
-> {
-  return from(val) as any;
-}
-
-Result.is = is;
-Result.from = from;
-Result.nonNull = nonNull;
-Result.qty = qty;
-Result.safe = safe;
-Result.all = all;
-Result.any = any;
-Result.unsafe = unsafe;
+export const Result = Object.freeze({
+  ok,
+  err,
+  is,
+  safe,
+  all,
+  any,
+  unsafe,
+});
 
 /**
  * Creates an `Ok<T>` value, which can be used where a `Result<T, E>` is
@@ -1545,12 +1535,12 @@ Result.unsafe = unsafe;
  * context (e.g. a function which accepts or returns a Result).
  *
  * ```
- * const x = Ok(10);
+ * const x = Result.ok(10);
  * assert.equal(x.isSome(), true);
  * assert.equal(x.unwrap(), 10);
  * ```
  */
-export function Ok<T>(val: T): Ok<T> {
+function ok<T>(val: T): Ok<T> {
   return new ResultType<T, never>(val, true);
 }
 
@@ -1563,95 +1553,13 @@ export function Ok<T>(val: T): Ok<T> {
  * context (e.g. a function which accepts or returns a Result).
  *
  * ```
- * const x = Err(10);
+ * const x = Result.err(10);
  * assert.equal(x.isErr(), true);
  * assert.equal(x.unwrapErr(), 10);
  * ```
  */
-export function Err<E>(val: E): Err<E> {
+function err<E>(val: E): Err<E> {
   return new ResultType<never, E>(val, false);
-}
-
-/**
- * Creates a new `Result<T, E>` which is `Ok<T>` unless the provided `val` is
- * falsey, an instance of `Error` or an invalid `Date`.
- *
- * The `T` is narrowed to exclude any falsey values or Errors.
- *
- * The `E` type includes:
- * - `null` (if `val` could have been falsey or an invalid date)
- * - `Error` types excluded from `T` (if there are any)
- *
- * **Note:** `null` is not a useful value. Consider `Option.from` or `mapErr`.
- *
- * ```
- * assert.equal(Result.from(1).unwrap(), 1);
- * assert.equal(Result(0).isErr(), true);
- *
- * const err = Result.from(new Error("msg"));
- * assert.equal(err.unwrapErr().message, "msg");
- *
- * // Create a Result<number, string>
- * const x = Option.from(1).okOr("Falsey Value");
- * ```
- */
-function from<T>(
-  val: T
-): Result<
-  From<T>,
-  | (T extends Error ? T : never)
-  | (Extract<FalseyValues, T> extends never ? never : null)
-> {
-  return isTruthy(val)
-    ? new ResultType(val as any, !(val instanceof Error))
-    : Err(null);
-}
-
-/**
- * Creates a new `Result<T, null>` which is `Ok` unless the provided `val` is
- * `undefined`, `null` or `NaN`.
- *
- * **Note:** `null` is not a useful value. Consider `Option.nonNull` or
- * `mapErr`.
- *
- * ```
- * assert.equal(Result.nonNull(1).unwrap(), 1);
- * assert.equal(Result.nonNull(0).unwrap(), 0);
- * assert.equal(Result.nonNull(null).isErr(), true);
- *
- * // Create a Result<number, string>
- * const x = Option.nonNull(1).okOr("Nullish Value");
- * ```
- */
-function nonNull<T>(val: T): Result<NonNullable<T>, null> {
-  return val === undefined || val === null || val !== val
-    ? Err(null)
-    : Ok(val as NonNullable<T>);
-}
-
-/**
- * Creates a new Result<number, null> which is `Ok` when the provided `val` is
- * a finite integer greater than or equal to 0.
- *
- * **Note:** `null` is not a useful value. Consider `Option.qty` or `mapErr`.
- *
- * ```
- * const x = Result.qty("test".indexOf("s"));
- * assert.equal(x.unwrap(), 2);
- *
- * const x = Result.qty("test".indexOf("z"));
- * assert.equal(x.unwrapErr(), null);
- *
- * // Create a Result<number, string>
- * const x = Result.qty("test".indexOf("s")).mapErr(() => "Not Found");
- * ```
- */
-function qty<T extends number>(val: T): Result<number, null> {
-  return val >= 0 && Number.isInteger(val) ? Ok(val) : Err(null);
-}
-
-function toError(err: unknown): Error {
-  return err instanceof Error ? err : new Error(String(err));
 }
 
 /**
@@ -1723,15 +1631,15 @@ function safe<T, E>(
   if (fn instanceof Promise) {
     return new ResultTypeAsync(
       fn
-        .then((val) => Ok(val))
-        .catch((err) => Err(mapErr === undefined ? toError(err) : mapErr(err)))
+        .then((val) => ok(val))
+        .catch((e) => err(mapErr === undefined ? toError(e) : mapErr(e)))
     );
   }
 
   try {
-    return Ok(fn());
-  } catch (err) {
-    return Err(mapErr === undefined ? toError(err) : mapErr(err));
+    return ok(fn());
+  } catch (e) {
+    return err(mapErr === undefined ? toError(e) : mapErr(e));
   }
 }
 
@@ -1742,7 +1650,7 @@ function safe<T, E>(
  *
  * ```
  * function num(val: number): Result<number, string> {
- *    return val > 10 ? Ok(val) : Err(`Value ${val} is too low.`);
+ *    return val > 10 ? Result.ok(val) : Result.err(`Value ${val} is too low.`);
  * }
  *
  * const xyz = Result.all(num(20), num(30), num(40));
@@ -1759,16 +1667,16 @@ function safe<T, E>(
 function all<R extends Result<any, any>[]>(
   ...results: R
 ): Result<ResultTypes<R>, ResultErrors<R>[number]> {
-  const ok = [];
+  const values = [];
   for (const result of results) {
     if (result.isOk()) {
-      ok.push(result.unwrapUnchecked());
+      values.push(result.unwrap());
     } else {
       return result;
     }
   }
 
-  return Ok(ok) as Ok<ResultTypes<R>>;
+  return ok(values) as Ok<ResultTypes<R>>;
 }
 
 /**
@@ -1778,7 +1686,7 @@ function all<R extends Result<any, any>[]>(
  *
  * ```
  * function num(val: number): Result<number, string> {
- *    return val > 10 ? Ok(val) : Err(`Value ${val} is too low.`);
+ *    return val > 10 ? Result.ok(val) : Result.err(`Value ${val} is too low.`);
  * }
  *
  * const x = Result.any(num(5), num(20), num(2));
@@ -1794,16 +1702,16 @@ function all<R extends Result<any, any>[]>(
 function any<R extends Result<any, any>[]>(
   ...results: R
 ): Result<ResultTypes<R>[number], ResultErrors<R>> {
-  const err = [];
+  const errors = [];
   for (const result of results) {
     if (result.isOk()) {
       return result;
     } else {
-      err.push(result.unwrapUnchecked());
+      errors.push(result.unwrapUnchecked());
     }
   }
 
-  return Err(err) as Err<ResultErrors<R>>;
+  return err(errors) as Err<ResultErrors<R>>;
 }
 
 /**

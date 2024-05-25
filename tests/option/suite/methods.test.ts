@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 
-import { Option, OptionAsync, Some, None } from "../../../src";
+import { Option, OptionAsync } from "../../../src";
 
 function asOpt(opt: Option<any>): Option<number> {
   return opt;
@@ -13,109 +13,121 @@ function toAsync<T>(opt: Option<T>): OptionAsync<T> {
 
 export default function methods() {
   it("into", () => {
-    expect(Some(1).into()).to.equal(1);
-    expect(None.into()).to.equal(undefined);
-    expect(None.into(false)).to.equal(false);
-    expect(None.into(null)).to.equal(null);
+    expect(Option.some(1).into()).to.equal(1);
+    expect(Option.none.into()).to.equal(undefined);
+    expect(Option.none.into(false)).to.equal(false);
+    expect(Option.none.into(null)).to.equal(null);
   });
 
   it("intoAsync", async () => {
-    expect(await toAsync(Some(1)).intoAsync()).to.equal(1);
-    expect(await toAsync(None).intoAsync()).to.equal(undefined);
-    expect(await toAsync(None).intoAsync(false)).to.equal(false);
-    expect(await toAsync(None).intoAsync(null)).to.equal(null);
+    expect(await toAsync(Option.some(1)).intoAsync()).to.equal(1);
+    expect(await toAsync(Option.none).intoAsync()).to.equal(undefined);
+    expect(await toAsync(Option.none).intoAsync(false)).to.equal(false);
+    expect(await toAsync(Option.none).intoAsync(null)).to.equal(null);
   });
 
   it("isSome", () => {
-    expect(Some(1).isSome()).to.be.true;
-    expect(None.isSome()).to.be.false;
+    expect(Option.some(1).isSome()).to.be.true;
+    expect(Option.none.isSome()).to.be.false;
   });
 
   it("isSomeAsync", async () => {
-    expect(await toAsync(Some(1)).isSomeAsync()).to.be.true;
-    expect(await toAsync(None).isSomeAsync()).to.be.false;
+    expect(await toAsync(Option.some(1)).isSomeAsync()).to.be.true;
+    expect(await toAsync(Option.none).isSomeAsync()).to.be.false;
   });
 
   it("isSomeAnd", () => {
-    expect(Some(1).isSomeAnd((val) => val === 1)).to.be.true;
-    expect(Some(1).isSomeAnd((val) => val > 1)).to.be.false;
-    expect(None.isSomeAnd((val) => val === 1)).to.be.false;
+    expect(Option.some(1).isSomeAnd((val) => val === 1)).to.be.true;
+    expect(Option.some(1).isSomeAnd((val) => val > 1)).to.be.false;
+    expect(Option.none.isSomeAnd((val) => val === 1)).to.be.false;
   });
 
   it("isSomeAndAsync", async () => {
-    expect(await Some(1).isSomeAndAsync(async (val) => val === 1)).to.be.true;
-    expect(await Some(1).isSomeAndAsync(async (val) => val > 1)).to.be.false;
-    expect(await None.isSomeAndAsync(async (val) => val === 1)).to.be.false;
+    expect(await Option.some(1).isSomeAndAsync(async (val) => val === 1)).to.be
+      .true;
+    expect(await Option.some(1).isSomeAndAsync(async (val) => val > 1)).to.be
+      .false;
+    expect(await Option.none.isSomeAndAsync(async (val) => val === 1)).to.be
+      .false;
 
-    expect(await toAsync(Some(1)).isSomeAndAsync(async (val) => val === 1)).to
-      .be.true;
-    expect(await toAsync(Some(1)).isSomeAndAsync((val) => val > 1)).to.be.false;
-    expect(await toAsync(None).isSomeAndAsync((val) => val === 1)).to.be.false;
+    expect(
+      await toAsync(Option.some(1)).isSomeAndAsync(async (val) => val === 1)
+    ).to.be.true;
+    expect(await toAsync(Option.some(1)).isSomeAndAsync((val) => val > 1)).to.be
+      .false;
+    expect(await toAsync(Option.none).isSomeAndAsync((val) => val === 1)).to.be
+      .false;
   });
 
   it("isNone", () => {
-    expect(Some(1).isNone()).to.be.false;
-    expect(None.isNone()).to.be.true;
+    expect(Option.some(1).isNone()).to.be.false;
+    expect(Option.none.isNone()).to.be.true;
   });
 
   it("isNoneAsync", async () => {
-    expect(await toAsync(Some(1)).isNoneAsync()).to.be.false;
-    expect(await toAsync(None).isNoneAsync()).to.be.true;
+    expect(await toAsync(Option.some(1)).isNoneAsync()).to.be.false;
+    expect(await toAsync(Option.none).isNoneAsync()).to.be.true;
   });
 
   it("filter", () => {
     const lessThan5 = (val: number) => val < 5;
-    expect(Some(1).filter(lessThan5).unwrap()).to.equal(1);
-    expect(Some(10).filter(lessThan5).isNone()).to.be.true;
-    expect(None.filter(lessThan5).isNone()).to.be.true;
+    expect(Option.some(1).filter(lessThan5).unwrap()).to.equal(1);
+    expect(Option.some(10).filter(lessThan5).isNone()).to.be.true;
+    expect(Option.none.filter(lessThan5).isNone()).to.be.true;
   });
 
   it("filterAsync", async () => {
     const lessThan5 = async (val: number) => val < 5;
-    expect(await Some(1).filterAsync(lessThan5).unwrapAsync()).to.equal(1);
-    expect(await Some(10).filterAsync(lessThan5).isNoneAsync()).to.be.true;
-    expect(await None.filterAsync(lessThan5).isNoneAsync()).to.be.true;
+    expect(await Option.some(1).filterAsync(lessThan5).unwrapAsync()).to.equal(
+      1
+    );
+    expect(await Option.some(10).filterAsync(lessThan5).isNoneAsync()).to.be
+      .true;
+    expect(await Option.none.filterAsync(lessThan5).isNoneAsync()).to.be.true;
 
     expect(
-      await toAsync(Some(1)).filterAsync(lessThan5).unwrapAsync()
+      await toAsync(Option.some(1)).filterAsync(lessThan5).unwrapAsync()
     ).to.equal(1);
-    expect(await toAsync(Some(10)).filterAsync(lessThan5).isNoneAsync()).to.be
-      .true;
-    expect(await toAsync(None).filterAsync(lessThan5).isNoneAsync()).to.be.true;
+    expect(await toAsync(Option.some(10)).filterAsync(lessThan5).isNoneAsync())
+      .to.be.true;
+    expect(await toAsync(Option.none).filterAsync(lessThan5).isNoneAsync()).to
+      .be.true;
   });
 
   it("flatten", () => {
-    expect(Some(Some(1)).flatten().unwrap()).to.equal(1);
-    expect(Some(None).flatten().isNone()).to.be.true;
-    expect(None.flatten().isNone()).to.be.true;
+    expect(Option.some(Option.some(1)).flatten().unwrap()).to.equal(1);
+    expect(Option.some(Option.none).flatten().isNone()).to.be.true;
+    expect(Option.none.flatten().isNone()).to.be.true;
   });
 
   it("flattenAsync", async () => {
     expect(
-      await Some(toAsync(Some(1)))
+      await Option.some(toAsync(Option.some(1)))
         .flattenAsync()
         .unwrapAsync()
     ).to.equal(1);
-    expect(await Some(toAsync(None)).flattenAsync().isNoneAsync()).to.be.true;
-    expect(await None.flattenAsync().isNoneAsync()).to.be.true;
+    expect(await Option.some(toAsync(Option.none)).flattenAsync().isNoneAsync())
+      .to.be.true;
+    expect(await Option.none.flattenAsync().isNoneAsync()).to.be.true;
 
     expect(
-      await toAsync(Some(Some(1)))
+      await toAsync(Option.some(Option.some(1)))
         .flattenAsync()
         .unwrapAsync()
     ).to.equal(1);
-    expect(await toAsync(Some(None)).flattenAsync().isNoneAsync()).to.be.true;
-    expect(await toAsync(None).flattenAsync().isNoneAsync()).to.be.true;
+    expect(await toAsync(Option.some(Option.none)).flattenAsync().isNoneAsync())
+      .to.be.true;
+    expect(await toAsync(Option.none).flattenAsync().isNoneAsync()).to.be.true;
   });
 
   it("expect", () => {
-    expect(Some(1).expect("test")).to.equal(1);
-    expect(() => None.expect("test")).to.throw("test");
+    expect(Option.some(1).expect("test")).to.equal(1);
+    expect(() => Option.none.expect("test")).to.throw("test");
   });
 
   it("expectAsync", async () => {
-    expect(await toAsync(Some(1)).expectAsync("test")).to.equal(1);
-    await toAsync(None)
+    expect(await toAsync(Option.some(1)).expectAsync("test")).to.equal(1);
+    await toAsync(Option.none)
       .expectAsync("test")
       .then(() => {
         throw new Error("expectAsync is supposed to throw");
@@ -127,13 +139,13 @@ export default function methods() {
   });
 
   it("unwrap", () => {
-    expect(Some(1).unwrap()).to.equal(1);
-    expect(() => None.unwrap()).to.throw("expected Some, got None");
+    expect(Option.some(1).unwrap()).to.equal(1);
+    expect(() => Option.none.unwrap()).to.throw("expected Some, got None");
   });
 
   it("unwrapAsync", async () => {
-    expect(await toAsync(Some(1)).unwrapAsync()).to.equal(1);
-    await toAsync(None)
+    expect(await toAsync(Option.some(1)).unwrapAsync()).to.equal(1);
+    await toAsync(Option.none)
       .unwrapAsync()
       .then(() => {
         throw new Error("unwrapAsync is supposed to throw");
@@ -145,245 +157,253 @@ export default function methods() {
   });
 
   it("unwrapOr", () => {
-    expect(Some(1).unwrapOr(2)).to.equal(1);
-    expect(asOpt(None).unwrapOr(2)).to.equal(2);
+    expect(Option.some(1).unwrapOr(2)).to.equal(1);
+    expect(asOpt(Option.none).unwrapOr(2)).to.equal(2);
   });
 
   it("unwrapOrAsync", async () => {
-    expect(await toAsync(Some(1)).unwrapOrAsync(2)).to.equal(1);
-    expect(await toAsync(asOpt(None)).unwrapOrAsync(2)).to.equal(2);
+    expect(await toAsync(Option.some(1)).unwrapOrAsync(2)).to.equal(1);
+    expect(await toAsync(asOpt(Option.none)).unwrapOrAsync(2)).to.equal(2);
   });
 
   it("unwrapOrElse", () => {
-    expect(Some(1).unwrapOrElse(() => 2)).to.equal(1);
-    expect(asOpt(None).unwrapOrElse(() => 2)).to.equal(2);
+    expect(Option.some(1).unwrapOrElse(() => 2)).to.equal(1);
+    expect(asOpt(Option.none).unwrapOrElse(() => 2)).to.equal(2);
   });
 
   it("unwrapOrElseAsync", async () => {
-    expect(await Some(1).unwrapOrElseAsync(async () => 2)).to.equal(1);
-    expect(await asOpt(None).unwrapOrElseAsync(async () => 2)).to.equal(2);
+    expect(await Option.some(1).unwrapOrElseAsync(async () => 2)).to.equal(1);
+    expect(await asOpt(Option.none).unwrapOrElseAsync(async () => 2)).to.equal(
+      2
+    );
 
-    expect(await toAsync(Some(1)).unwrapOrElseAsync(async () => 2)).to.equal(1);
     expect(
-      await toAsync(asOpt(None)).unwrapOrElseAsync(async () => 2)
+      await toAsync(Option.some(1)).unwrapOrElseAsync(async () => 2)
+    ).to.equal(1);
+    expect(
+      await toAsync(asOpt(Option.none)).unwrapOrElseAsync(async () => 2)
     ).to.equal(2);
   });
 
   it("unwrapUnchecked", () => {
-    expect(Some(1).unwrapUnchecked()).to.equal(1);
-    expect(None.unwrapUnchecked()).to.be.undefined;
+    expect(Option.some(1).unwrapUnchecked()).to.equal(1);
+    expect(Option.none.unwrapUnchecked()).to.be.undefined;
   });
 
   it("unwrapUncheckedAsync", async () => {
-    expect(await toAsync(Some(1)).unwrapUncheckedAsync()).to.equal(1);
-    expect(await toAsync(None).unwrapUncheckedAsync()).to.be.undefined;
+    expect(await toAsync(Option.some(1)).unwrapUncheckedAsync()).to.equal(1);
+    expect(await toAsync(Option.none).unwrapUncheckedAsync()).to.be.undefined;
   });
 
   it("or", () => {
-    expect(Some(1).or(Some(2)).unwrap()).to.equal(1);
-    expect(asOpt(None).or(Some(2)).unwrap()).to.equal(2);
+    expect(Option.some(1).or(Option.some(2)).unwrap()).to.equal(1);
+    expect(asOpt(Option.none).or(Option.some(2)).unwrap()).to.equal(2);
   });
 
   it("orAsync", async () => {
     expect(
-      await Some(1)
-        .orAsync(toAsync(Some(2)))
+      await Option.some(1)
+        .orAsync(toAsync(Option.some(2)))
         .unwrapAsync()
     ).to.equal(1);
     expect(
-      await asOpt(None)
-        .orAsync(toAsync(Some(2)))
+      await asOpt(Option.none)
+        .orAsync(toAsync(Option.some(2)))
         .unwrapAsync()
     ).to.equal(2);
 
     expect(
-      await toAsync(Some(1))
-        .orAsync(toAsync(Some(2)))
+      await toAsync(Option.some(1))
+        .orAsync(toAsync(Option.some(2)))
         .unwrapAsync()
     ).to.equal(1);
-    expect(await toAsync(asOpt(None)).orAsync(Some(2)).unwrapAsync()).to.equal(
-      2
-    );
+    expect(
+      await toAsync(asOpt(Option.none)).orAsync(Option.some(2)).unwrapAsync()
+    ).to.equal(2);
   });
 
   it("orElse", () => {
     expect(
-      Some(1)
-        .orElse(() => Some(2))
+      Option.some(1)
+        .orElse(() => Option.some(2))
         .unwrap()
     ).to.equal(1);
     expect(
-      asOpt(None)
-        .orElse(() => Some(2))
+      asOpt(Option.none)
+        .orElse(() => Option.some(2))
         .unwrap()
     ).to.equal(2);
   });
 
   it("orElseAsync", async () => {
     expect(
-      await Some(1)
-        .orElseAsync(async () => Some(2))
+      await Option.some(1)
+        .orElseAsync(async () => Option.some(2))
         .unwrapAsync()
     ).to.equal(1);
     expect(
-      await asOpt(None)
-        .orElseAsync(async () => Some(2))
+      await asOpt(Option.none)
+        .orElseAsync(async () => Option.some(2))
         .unwrapAsync()
     ).to.equal(2);
 
     expect(
-      await toAsync(Some(1))
-        .orElseAsync(async () => Some(2))
+      await toAsync(Option.some(1))
+        .orElseAsync(async () => Option.some(2))
         .unwrapAsync()
     ).to.equal(1);
     expect(
-      await toAsync(asOpt(None))
-        .orElseAsync(() => Some(2))
+      await toAsync(asOpt(Option.none))
+        .orElseAsync(() => Option.some(2))
         .unwrapAsync()
     ).to.equal(2);
   });
 
   it("and", () => {
-    expect(Some(1).and(None).isNone()).to.be.true;
-    expect(asOpt(None).and(Some(2)).isNone()).to.be.true;
-    expect(Some(1).and(Some("two")).unwrap()).to.equal("two");
+    expect(Option.some(1).and(Option.none).isNone()).to.be.true;
+    expect(asOpt(Option.none).and(Option.some(2)).isNone()).to.be.true;
+    expect(Option.some(1).and(Option.some("two")).unwrap()).to.equal("two");
   });
 
   it("andAsync", async () => {
-    expect(await Some(1).andAsync(toAsync(None)).isNoneAsync()).to.be.true;
+    expect(await Option.some(1).andAsync(toAsync(Option.none)).isNoneAsync()).to
+      .be.true;
     expect(
-      await asOpt(None)
-        .andAsync(toAsync(Some(2)))
+      await asOpt(Option.none)
+        .andAsync(toAsync(Option.some(2)))
         .isNoneAsync()
     ).to.be.true;
     expect(
-      await Some(1)
-        .andAsync(toAsync(Some("two")))
+      await Option.some(1)
+        .andAsync(toAsync(Option.some("two")))
         .unwrapAsync()
     ).to.equal("two");
 
-    expect(await toAsync(Some(1)).andAsync(toAsync(None)).isNoneAsync()).to.be
-      .true;
     expect(
-      await toAsync(asOpt(None))
-        .andAsync(toAsync(Some(2)))
+      await toAsync(Option.some(1)).andAsync(toAsync(Option.none)).isNoneAsync()
+    ).to.be.true;
+    expect(
+      await toAsync(asOpt(Option.none))
+        .andAsync(toAsync(Option.some(2)))
         .isNoneAsync()
     ).to.be.true;
-    expect(await toAsync(Some(1)).andAsync(Some("two")).unwrapAsync()).to.equal(
-      "two"
-    );
+    expect(
+      await toAsync(Option.some(1)).andAsync(Option.some("two")).unwrapAsync()
+    ).to.equal("two");
   });
 
   it("andThen", () => {
     expect(
-      Some(1)
-        .andThen(() => None)
+      Option.some(1)
+        .andThen(() => Option.none)
         .isNone()
     ).to.be.true;
     expect(
-      asOpt(None)
-        .andThen(() => Some(2))
+      asOpt(Option.none)
+        .andThen(() => Option.some(2))
         .isNone()
     ).to.be.true;
     expect(
-      Some(1)
-        .andThen((n) => Some(`num ${n + 1}`))
+      Option.some(1)
+        .andThen((n) => Option.some(`num ${n + 1}`))
         .unwrap()
     ).to.equal("num 2");
   });
 
   it("andThenAsync", async () => {
     expect(
-      await Some(1)
-        .andThenAsync(async () => None)
+      await Option.some(1)
+        .andThenAsync(async () => Option.none)
         .isNoneAsync()
     ).to.be.true;
     expect(
-      await asOpt(None)
-        .andThenAsync(async () => Some(2))
+      await asOpt(Option.none)
+        .andThenAsync(async () => Option.some(2))
         .isNoneAsync()
     ).to.be.true;
     expect(
-      await Some(1)
-        .andThenAsync(async (n) => Some(`num ${n + 1}`))
+      await Option.some(1)
+        .andThenAsync(async (n) => Option.some(`num ${n + 1}`))
         .unwrapAsync()
     ).to.equal("num 2");
 
     expect(
-      await toAsync(Some(1))
-        .andThenAsync(async () => None)
+      await toAsync(Option.some(1))
+        .andThenAsync(async () => Option.none)
         .isNoneAsync()
     ).to.be.true;
     expect(
-      await toAsync(asOpt(None))
-        .andThenAsync(async () => Some(2))
+      await toAsync(asOpt(Option.none))
+        .andThenAsync(async () => Option.some(2))
         .isNoneAsync()
     ).to.be.true;
     expect(
-      await toAsync(Some(1))
-        .andThenAsync(async (n) => Some(`num ${n + 1}`))
+      await toAsync(Option.some(1))
+        .andThenAsync(async (n) => Option.some(`num ${n + 1}`))
         .unwrapAsync()
     ).to.equal("num 2");
   });
 
   it("map", () => {
     expect(
-      Some(1)
+      Option.some(1)
         .map((val) => val + 1)
         .unwrap()
     ).to.equal(2);
-    expect(() => None.map((val) => val + 1).unwrap()).to.throw(
+    expect(() => Option.none.map((val) => val + 1).unwrap()).to.throw(
       "expected Some, got None"
     );
   });
 
   it("mapAsync", async () => {
     expect(
-      await Some(1)
+      await Option.some(1)
         .mapAsync(async (val) => val + 1)
         .unwrapAsync()
     ).to.equal(2);
-    expect(await None.mapAsync(async (val) => val + 1).isNoneAsync()).to.be
-      .true;
+    expect(await Option.none.mapAsync(async (val) => val + 1).isNoneAsync()).to
+      .be.true;
 
     expect(
-      await toAsync(Some(1))
+      await toAsync(Option.some(1))
         .mapAsync(async (val) => val + 1)
         .unwrapAsync()
     ).to.equal(2);
     expect(
-      await toAsync(None)
+      await toAsync(Option.none)
         .mapAsync((val) => val + 1)
         .isNoneAsync()
     ).to.be.true;
   });
 
   it("mapOr", () => {
-    expect(Some(1).mapOr(3, (val) => val + 1)).to.equal(2);
-    expect(None.mapOr(3, (val) => val + 1)).to.equal(3);
+    expect(Option.some(1).mapOr(3, (val) => val + 1)).to.equal(2);
+    expect(Option.none.mapOr(3, (val) => val + 1)).to.equal(3);
   });
 
   it("mapOrAsync", async () => {
-    expect(await Some(1).mapOrAsync(3, async (val) => val + 1)).to.equal(2);
-    expect(await None.mapOrAsync(3, async (val) => val + 1)).to.equal(3);
+    expect(await Option.some(1).mapOrAsync(3, async (val) => val + 1)).to.equal(
+      2
+    );
+    expect(await Option.none.mapOrAsync(3, async (val) => val + 1)).to.equal(3);
 
     expect(
-      await toAsync(Some(1)).mapOrAsync(3, async (val) => val + 1)
+      await toAsync(Option.some(1)).mapOrAsync(3, async (val) => val + 1)
     ).to.equal(2);
-    expect(await toAsync(None).mapOrAsync(3, async (val) => val + 1)).to.equal(
-      3
-    );
+    expect(
+      await toAsync(Option.none).mapOrAsync(3, async (val) => val + 1)
+    ).to.equal(3);
   });
 
   it("mapOrElse", () => {
     expect(
-      Some(1).mapOrElse(
+      Option.some(1).mapOrElse(
         () => 3,
         (val) => val + 1
       )
     ).to.equal(2);
     expect(
-      None.mapOrElse(
+      Option.none.mapOrElse(
         () => 3,
         (val) => val + 1
       )
@@ -392,26 +412,26 @@ export default function methods() {
 
   it("mapOrElseAsync", async () => {
     expect(
-      await Some(1).mapOrElseAsync(
+      await Option.some(1).mapOrElseAsync(
         async () => 3,
         async (val) => val + 1
       )
     ).to.equal(2);
     expect(
-      await None.mapOrElseAsync(
+      await Option.none.mapOrElseAsync(
         async () => 3,
         (val) => val + 1
       )
     ).to.equal(3);
 
     expect(
-      await toAsync(Some(1)).mapOrElseAsync(
+      await toAsync(Option.some(1)).mapOrElseAsync(
         () => 3,
         async (val) => val + 1
       )
     ).to.equal(2);
     expect(
-      await toAsync(None).mapOrElseAsync(
+      await toAsync(Option.none).mapOrElseAsync(
         () => 3,
         (val) => val + 1
       )
@@ -419,45 +439,48 @@ export default function methods() {
   });
 
   it("okOr", () => {
-    expect(Some(1).okOr("err").isOk()).to.be.true;
-    expect(Some(1).okOr("err").unwrap()).to.equal(1);
-    expect(None.okOr("err").isErr()).to.be.true;
-    expect(None.okOr("err").unwrapErr()).to.equal("err");
+    expect(Option.some(1).okOr("err").isOk()).to.be.true;
+    expect(Option.some(1).okOr("err").unwrap()).to.equal(1);
+    expect(Option.none.okOr("err").isErr()).to.be.true;
+    expect(Option.none.okOr("err").unwrapErr()).to.equal("err");
   });
 
   it("okOrAsync", async () => {
-    expect(await toAsync(Some(1)).okOrAsync("err").isOkAsync()).to.be.true;
-    expect(await toAsync(Some(1)).okOrAsync("err").unwrapAsync()).to.equal(1);
-    expect(await toAsync(None).okOrAsync("err").isErrAsync()).to.be.true;
-    expect(await toAsync(None).okOrAsync("err").unwrapErrAsync()).to.equal(
-      "err"
-    );
+    expect(await toAsync(Option.some(1)).okOrAsync("err").isOkAsync()).to.be
+      .true;
+    expect(
+      await toAsync(Option.some(1)).okOrAsync("err").unwrapAsync()
+    ).to.equal(1);
+    expect(await toAsync(Option.none).okOrAsync("err").isErrAsync()).to.be.true;
+    expect(
+      await toAsync(Option.none).okOrAsync("err").unwrapErrAsync()
+    ).to.equal("err");
   });
 
   it("okOrElse", () => {
-    const someOpt = Some(1).okOrElse(() => "err");
+    const someOpt = Option.some(1).okOrElse(() => "err");
     expect(someOpt.isOk()).to.be.true;
     expect(someOpt.unwrap()).to.equal(1);
 
-    const noneOpt = None.okOrElse(() => "err");
+    const noneOpt = Option.none.okOrElse(() => "err");
     expect(noneOpt.isErr()).to.be.true;
     expect(noneOpt.unwrapErr()).to.equal("err");
   });
 
   it("okOrElseAsync", async () => {
-    const ok = Some(1).okOrElseAsync(async () => "err");
+    const ok = Option.some(1).okOrElseAsync(async () => "err");
     expect(await ok.isOkAsync()).to.be.true;
     expect(await ok.unwrapAsync()).to.equal(1);
 
-    const err = None.okOrElseAsync(async () => "err");
+    const err = Option.none.okOrElseAsync(async () => "err");
     expect(await err.isErrAsync()).to.be.true;
     expect(await err.unwrapErrAsync()).to.equal("err");
 
-    const okAsync = toAsync(Some(1)).okOrElseAsync(async () => "err");
+    const okAsync = toAsync(Option.some(1)).okOrElseAsync(async () => "err");
     expect(await okAsync.isOkAsync()).to.be.true;
     expect(await okAsync.unwrapAsync()).to.equal(1);
 
-    const errAsync = toAsync(None).okOrElseAsync(() => "err");
+    const errAsync = toAsync(Option.none).okOrElseAsync(() => "err");
     expect(await errAsync.isErrAsync()).to.be.true;
     expect(await errAsync.unwrapErrAsync()).to.equal("err");
   });
@@ -465,8 +488,8 @@ export default function methods() {
   it("inspect", () => {
     const fSome = sinon.fake();
     const fNone = sinon.fake();
-    Some(1).inspect(fSome);
-    None.inspect(fNone);
+    Option.some(1).inspect(fSome);
+    Option.none.inspect(fNone);
     expect(fSome.called);
     expect(fNone.notCalled);
   });
@@ -474,8 +497,8 @@ export default function methods() {
   it("inspectAsync", async () => {
     const fSome = sinon.fake();
     const fNone = sinon.fake();
-    await toAsync(Some(1)).inspectAsync(fSome);
-    await toAsync(None).inspectAsync(fNone);
+    await toAsync(Option.some(1)).inspectAsync(fSome);
+    await toAsync(Option.none).inspectAsync(fNone);
     expect(fSome.called);
     expect(fNone.notCalled);
   });

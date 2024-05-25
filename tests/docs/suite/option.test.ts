@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Option, Some, None } from "../../../src";
+import { Option } from "../../../src";
 
 export default function optionDocs() {
   it("Option", optionMain);
@@ -12,7 +12,7 @@ export default function optionDocs() {
 function optionMain() {
   const users = ["Fry", "Bender"];
   function fetch_user(username: string): Option<string> {
-    return users.includes(username) ? Some(username) : None;
+    return users.includes(username) ? Option.some(username) : Option.none;
   }
 
   function greet(username: string): string {
@@ -65,7 +65,7 @@ async function optionSafePromise() {
 
 function optionAll() {
   function num(val: number): Option<number> {
-    return val > 10 ? Some(val) : None;
+    return val > 10 ? Option.some(val) : Option.none;
   }
 
   {
@@ -84,7 +84,7 @@ function optionAll() {
 
 function optionAny() {
   function num(val: number): Option<number> {
-    return val > 10 ? Some(val) : None;
+    return val > 10 ? Option.some(val) : Option.none;
   }
 
   {

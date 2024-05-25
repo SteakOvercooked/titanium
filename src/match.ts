@@ -3,16 +3,16 @@ import { Option, Some, None } from "./option";
 import { Result, Ok, Err } from "./result";
 
 type MappedBranches<T, U> =
-   | (T extends Option<infer V> ? OptionMapped<V, U> : never)
-   | (T extends Result<infer V, infer E> ? ResultMapped<V, E, U> : never);
+  | (T extends Option<infer V> ? OptionMapped<V, U> : never)
+  | (T extends Result<infer V, infer E> ? ResultMapped<V, E, U> : never);
 
 type ChainedBranches<T, U> =
-   | Branch<T, U>[]
-   | [...Branch<T, U>[], DefaultBranch<U>];
+  | Branch<T, U>[]
+  | [...Branch<T, U>[], DefaultBranch<U>];
 
 type BranchCondition<T> =
-   | Mapped<T, boolean>
-   | (T extends { [T]: boolean } ? MonadCondition<T> : Condition<T>);
+  | Mapped<T, boolean>
+  | (T extends { [T]: boolean } ? MonadCondition<T> : Condition<T>);
 
 type Branch<T, U> = [BranchCondition<T>, BranchResult<T, U>];
 type Mapped<T, U> = (val: T) => U;
@@ -21,31 +21,32 @@ type BranchResult<T, U> = U | ((val: T) => U);
 type DefaultBranch<U> = () => U;
 
 interface OptionMapped<T, U> {
-   Some?: MonadMapped<T, U>;
-   None?: DefaultBranch<U>;
-   _?: DefaultBranch<U>;
+  Some?: MonadMapped<T, U>;
+  None?: DefaultBranch<U>;
+  _?: DefaultBranch<U>;
 }
 
 interface ResultMapped<T, E, U> {
-   Ok?: MonadMapped<T, U>;
-   Err?: MonadMapped<E, U>;
-   _?: DefaultBranch<U>;
+  Ok?: MonadMapped<T, U>;
+  Err?: MonadMapped<E, U>;
+  _?: DefaultBranch<U>;
 }
 
 type Condition<T> = T extends object
-   ? { [K in keyof T]?: BranchCondition<T[K]> }
-   : T;
+  ? { [K in keyof T]?: BranchCondition<T[K]> }
+  : T;
 
-type MonadCondition<T> = T extends Option<infer U>
-   ? Some<MonadCondition<U>> | None
-   : T extends Result<infer U, infer E>
-   ? Ok<MonadCondition<U>> | Err<MonadCondition<E>>
-   : Wide<T>;
+type MonadCondition<T> =
+  T extends Option<infer U>
+    ? Some<MonadCondition<U>> | None
+    : T extends Result<infer U, infer E>
+      ? Ok<MonadCondition<U>> | Err<MonadCondition<E>>
+      : Wide<T>;
 
 type MonadMapped<T, U> =
-   | Mapped<T, U>
-   | ChainedBranches<T, U>
-   | MappedBranches<T, U>;
+  | Mapped<T, U>
+  | ChainedBranches<T, U>
+  | MappedBranches<T, U>;
 
 /**
  * Concisely determine what action should be taken for a given input value.
@@ -56,7 +57,7 @@ type MonadMapped<T, U> =
  * other type will throw an invalid pattern error.
  *
  * ```
- * const num = Option(10);
+ * const num = Option.from(10);
  * const res = match(num, {
  *    Some: (n) => n + 1,
  *    None: () => 0,
@@ -77,8 +78,8 @@ type MonadMapped<T, U> =
  *    });
  * }
  *
- * assert.equal(nested(Ok(Some(10))), "found 10");
- * assert.equal(nested(Ok(None)), "nothing");
+ * assert.equal(nested(Result.ok(Option.some(10))), "found 10");
+ * assert.equal(nested(Result.ok(Option.none)), "nothing");
  * assert.equal(nested(Err("Not a number")), "nothing");
  * ```
  *
@@ -99,11 +100,11 @@ type MonadMapped<T, U> =
  *    });
  * }
  *
- * assert.equal(matchNum(Some(5)), "5");
- * assert.equal(matchNum(Some(7)), "< 10");
- * assert.equal(matchNum(Some(25)), "> 20");
- * assert.equal(matchNum(Some(15)), "none or not matched");
- * assert.equal(matchNum(None), "none or not matched");
+ * assert.equal(matchNum(Option.some(5)), "5");
+ * assert.equal(matchNum(Option.some(7)), "< 10");
+ * assert.equal(matchNum(Option.some(25)), "> 20");
+ * assert.equal(matchNum(Option.some(15)), "none or not matched");
+ * assert.equal(matchNum(Option.none), "none or not matched");
  * ```
  *
  * ### Async
@@ -244,17 +245,17 @@ type MonadMapped<T, U> =
  *
  * function matchMonad(val: NumberMonad): string {
  *    return match(val, [
- *       [Some(1), "Some"],
- *       [Ok(1), "Ok"],
- *       [Err(1), "Err"],
+ *       [Option.some(1), "Some"],
+ *       [Result.ok(1), "Ok"],
+ *       [Result.err(1), "Err"],
  *       () => "None",
  *    ]);
  * }
  *
- * assert.equal(matchMonad(Some(1)), "Some");
- * assert.equal(matchMonad(Ok(1)), "Ok");
- * assert.equal(matchMonad(Err(1)), "Err");
- * assert.equal(matchMonad(None), "None");
+ * assert.equal(matchMonad(Option.some(1)), "Some");
+ * assert.equal(matchMonad(Result.ok(1)), "Ok");
+ * assert.equal(matchMonad(Result.err(1)), "Err");
+ * assert.equal(matchMonad(Option.none), "None");
  * ```
  *
  * #### Fn (function as value)
@@ -282,10 +283,10 @@ type MonadMapped<T, U> =
  * ```
  */
 export function match<T, U>(
-   val: T,
-   pattern: MappedBranches<T, U> | ChainedBranches<T, U>
+  val: T,
+  pattern: MappedBranches<T, U> | ChainedBranches<T, U>
 ): U {
-   return matchDispatch(val, pattern, Default);
+  return matchDispatch(val, pattern, Default);
 }
 
 match.compile = compile;
@@ -304,8 +305,8 @@ export type match = typeof match;
  *    None: () => "got none",
  * });
  *
- * assert.equal(matchSome(Some(1)), "got some 1");
- * assert.equal(matchSome(None), "got none");
+ * assert.equal(matchSome(Option.some(1)), "got some 1");
+ * assert.equal(matchSome(Option.none), "got none");
  * ```
  *
  * #### Chained Match
@@ -336,31 +337,31 @@ export type match = typeof match;
  *    _: () => "default",
  * });
  *
- * assert.equal(matchResOpt(Ok(Some("test"))), "some test");
- * assert.equal(matchResOpt(Ok(None)), "default");
+ * assert.equal(matchResOpt(Result.ok(Option.some("test"))), "some test");
+ * assert.equal(matchResOpt(Result.ok(Option.none)), "default");
  * assert.equal(matchResOpt(Err(1)), "default");
  * ```
  */
 function compile<T, U>(
-   pattern: MappedBranches<T, U> | ChainedBranches<T, U>
+  pattern: MappedBranches<T, U> | ChainedBranches<T, U>
 ): (val: T) => U;
 function compile<T, U>(
-   pattern: MappedBranches<Option<T>, U>
+  pattern: MappedBranches<Option<T>, U>
 ): (val: Option<T>) => U;
 function compile<T, E, U>(
-   pattern: MappedBranches<Result<T, E>, U>
+  pattern: MappedBranches<Result<T, E>, U>
 ): (val: Result<T, E>) => U;
 function compile<T, U>(
-   pattern: MappedBranches<T, U> | ChainedBranches<T, U>
+  pattern: MappedBranches<T, U> | ChainedBranches<T, U>
 ): (val: T) => U {
-   return (val) => match(val, pattern);
+  return (val) => match(val, pattern);
 }
 
 /**
  * The `Default` (or `_`) value. Used as a marker to indicate "any value".
  */
 export const Default: any = () => {
-   throw new Error("Match failed (exhausted)");
+  throw new Error("Match failed (exhausted)");
 };
 export type Default = any;
 
@@ -376,141 +377,145 @@ export type _ = any;
  * when this needs to be used.
  */
 export function Fn<T extends (...args: any) => any>(fn: T): () => T {
-   const val: any = () => throwFnCalled();
-   (val as any)[FnVal] = fn;
-   return val;
+  const val: any = () => throwFnCalled();
+  (val as any)[FnVal] = fn;
+  return val;
 }
 
 export type Fn<T> = { (): never; [FnVal]: T };
 
 function matchMapped<T, U>(
-   val: T,
-   pattern: OptionMapped<any, U> & ResultMapped<any, any, U>,
-   defaultBranch: DefaultBranch<U>
+  val: T,
+  pattern: OptionMapped<any, U> & ResultMapped<any, any, U>,
+  defaultBranch: DefaultBranch<U>
 ): U {
-   if (Option.is(val)) {
-      if (val[T]) {
-         if (pattern.Some) {
-            if (typeof pattern.Some === "function") {
-               return pattern.Some(val[Val]);
-            } else {
-               return matchDispatch(
-                  val[Val],
-                  pattern.Some,
-                  typeof pattern._ === "function" ? pattern._ : defaultBranch
-               );
-            }
-         }
-      } else if (typeof pattern.None === "function") {
-         return pattern.None();
+  if (Option.is(val)) {
+    if (val[T]) {
+      if (pattern.Some) {
+        if (typeof pattern.Some === "function") {
+          return pattern.Some(val[Val]);
+        } else {
+          return matchDispatch(
+            val[Val],
+            pattern.Some,
+            typeof pattern._ === "function" ? pattern._ : defaultBranch
+          );
+        }
       }
-   } else if (Result.is(val)) {
-      const Branch = val[T] ? pattern.Ok : pattern.Err;
-      if (Branch) {
-         if (typeof Branch === "function") {
-            return Branch(val[Val]);
-         } else {
-            return matchDispatch(
-               val[Val],
-               Branch,
-               typeof pattern._ === "function" ? pattern._ : defaultBranch
-            );
-         }
+    } else if (typeof pattern.None === "function") {
+      return pattern.None();
+    }
+  } else if (Result.is(val)) {
+    const Branch = val[T] ? pattern.Ok : pattern.Err;
+    if (Branch) {
+      if (typeof Branch === "function") {
+        return Branch(val[Val]);
+      } else {
+        return matchDispatch(
+          val[Val],
+          Branch,
+          typeof pattern._ === "function" ? pattern._ : defaultBranch
+        );
       }
-   } else {
-      throwInvalidPattern();
-   }
+    }
+  } else {
+    throwInvalidPattern();
+  }
 
-   return typeof pattern._ === "function" ? pattern._() : defaultBranch();
+  return typeof pattern._ === "function" ? pattern._() : defaultBranch();
 }
 
 function matchChained<T, U>(
-   val: T,
-   pattern: ChainedBranches<T, U>,
-   defaultBranch: DefaultBranch<U>
+  val: T,
+  pattern: ChainedBranches<T, U>,
+  defaultBranch: DefaultBranch<U>
 ): U {
-   for (const branch of pattern) {
-      if (typeof branch === "function") {
-         return (branch as Fn<U>)[FnVal] ? (branch as Fn<U>)[FnVal] : branch();
-      } else {
-         const [cond, result] = branch;
-         if (matches(cond, val, true)) {
-            if (typeof result === "function") {
-               return (result as Fn<U>)[FnVal]
-                  ? (result as Fn<U>)[FnVal]
-                  : (result as (val: T) => U)(val);
-            } else {
-               return result;
-            }
-         }
+  for (const branch of pattern) {
+    if (typeof branch === "function") {
+      return (branch as Fn<U>)[FnVal] ? (branch as Fn<U>)[FnVal] : branch();
+    } else {
+      const [cond, result] = branch;
+      if (matches(cond, val, true)) {
+        if (typeof result === "function") {
+          return (result as Fn<U>)[FnVal]
+            ? (result as Fn<U>)[FnVal]
+            : (result as (val: T) => U)(val);
+        } else {
+          return result;
+        }
       }
-   }
+    }
+  }
 
-   return defaultBranch();
+  return defaultBranch();
 }
 
 function matches<T>(
-   cond: BranchCondition<T>,
-   val: T,
-   evaluate: boolean
+  cond: BranchCondition<T>,
+  val: T,
+  evaluate: boolean
 ): boolean {
-   if (cond === Default || cond === val) {
+  if (cond === Default || cond === val) {
+    return true;
+  }
+
+  if (typeof cond === "function") {
+    return (cond as Fn<T>)[FnVal]
+      ? (cond as Fn<T>)[FnVal] === val
+      : evaluate && (cond as (val: T) => boolean)(val);
+  }
+
+  if (isObjectLike(cond)) {
+    if (T in cond) {
+      const isLike =
+        (Result.is(val) &&
+          Result.is(cond) &&
+          (cond as any)[T] === (val as any)[T]) ||
+        (Option.is(val) &&
+          Option.is(cond) &&
+          (cond as any)[T] === (val as any)[T]);
+      return isLike && matches((cond as any)[Val], (val as any)[Val], false);
+    }
+
+    if (isObjectLike(val) && Array.isArray(cond) === Array.isArray(val)) {
+      for (const key of Object.keys(cond)) {
+        if (
+          !(key in val) ||
+          !matches((cond as any)[key], (val as any)[key], evaluate)
+        ) {
+          return false;
+        }
+      }
+
       return true;
-   }
+    }
+  }
 
-   if (typeof cond === "function") {
-      return (cond as Fn<T>)[FnVal]
-         ? (cond as Fn<T>)[FnVal] === val
-         : evaluate && (cond as (val: T) => boolean)(val);
-   }
-
-   if (isObjectLike(cond)) {
-      if (T in cond) {
-         const isLike =
-            Result.is(val) && Result.is(cond) && (cond as any)[T] === (val as any)[T] ||
-            Option.is(val) && Option.is(cond) && (cond as any)[T] === (val as any)[T];
-         return isLike && (matches((cond as any)[Val], (val as any)[Val], false));
-      }
-
-      if (isObjectLike(val) && Array.isArray(cond) === Array.isArray(val)) {
-         for (const key of Object.keys(cond)) {
-            if (
-               !(key in val) ||
-               !matches((cond as any)[key], (val as any)[key], evaluate)
-            ) {
-               return false;
-            }
-         }
-
-         return true;
-      }
-   }
-
-   return false;
+  return false;
 }
 
 function matchDispatch<T, U>(
-   val: T,
-   pattern: ChainedBranches<T, U> | MappedBranches<T, U>,
-   defaultBranch: DefaultBranch<U>
+  val: T,
+  pattern: ChainedBranches<T, U> | MappedBranches<T, U>,
+  defaultBranch: DefaultBranch<U>
 ): U {
-   if (Array.isArray(pattern)) {
-      return matchChained(val, pattern, defaultBranch);
-   } else if (isObjectLike(pattern)) {
-      return matchMapped(val, pattern, defaultBranch);
-   }
+  if (Array.isArray(pattern)) {
+    return matchChained(val, pattern, defaultBranch);
+  } else if (isObjectLike(pattern)) {
+    return matchMapped(val, pattern, defaultBranch);
+  }
 
-   throwInvalidPattern();
+  throwInvalidPattern();
 }
 
 function isObjectLike(value: unknown): value is Record<string | number, any> {
-   return value !== null && typeof value === "object";
+  return value !== null && typeof value === "object";
 }
 
 function throwInvalidPattern(): never {
-   throw new Error("Match failed (invalid pattern)");
+  throw new Error("Match failed (invalid pattern)");
 }
 
 function throwFnCalled(): never {
-   throw new Error("Match error (wrapped function called)");
+  throw new Error("Match error (wrapped function called)");
 }
